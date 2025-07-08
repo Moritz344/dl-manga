@@ -1,4 +1,4 @@
-# manga-cli
+# dl-manga
 yet another manga cli downloader
 
 > **Disclaimer:**
