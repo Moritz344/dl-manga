@@ -1,7 +1,15 @@
 import { search, Separator } from '@inquirer/prompts';
 import { select } from '@inquirer/prompts';
+import { confirm } from '@inquirer/prompts';
+import { input } from '@inquirer/prompts';
+import { getMangaID,getMangaChapters,getServerData, DownloadChapters } from './downloadMangaFuncs.js';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 // NOTE: source funktion erwartet: { poop: "pooping", value: 'Wert' },
+
+
 
 async function HomeScreen() {
 
@@ -9,14 +17,14 @@ async function HomeScreen() {
   message: "Select Categorie",
   choices: [
     {
-      name: "Popular Manga",
-      value: "Popular Manga",
-      description: "View Popular Mangas."
-    },
-    {
-      name: "Search Manga",
+      name: "Search Mangas",
       value: "Search Manga",
       description: "Search for Mangas"
+    },
+    {
+      name: "Popular Mangas",
+      value: "Popular Manga",
+      description: "View popular Mangas"
     },
   ],
 
@@ -35,6 +43,7 @@ HomeScreen();
 
 async function SearchMangaPopular() {
   const answer = await search({
+    pageSize: 7,
     message: 'Select an Manga',
     source: async (input, { signal }) => {
       if (!input) {
@@ -65,6 +74,8 @@ async function SearchMangaPopular() {
           });
         }
 
+        manga_list.push("Back");
+
       }catch(error) {
         console.log(error);
       }
@@ -74,7 +85,11 @@ async function SearchMangaPopular() {
 
 
     },
+
   });
+    if (answer === "Back") {
+      await HomeScreen();
+    }
 
 }
 
@@ -92,7 +107,6 @@ async function SearchManga() {
 
       const url = `https://api.mangadex.org/manga?title=${encodeURIComponent(input)}`;
 
-      const manga_list = [];
 
       try {
         const response = await fetch(url,{ signal }, {
@@ -104,9 +118,10 @@ async function SearchManga() {
 
         const data = await response.json();
 
+
         return data.data.map((mg) => ({
-          name: mg.attributes.title.en,
-          value: mg.attributes.title.en,
+          name: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
+          value: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
         }));
 
 
@@ -117,7 +132,61 @@ async function SearchManga() {
     },
   });
 
+  await DownloadMangaQuery(answer);
+
 }
 
 
 //SearchManga();
+
+async function DownloadManga(folder_path,manga_title) {
+  console.log("");
+  console.log("Downloading",manga_title,"in",folder_path);
+
+
+  // WHAT WE NEED: pages,chapter_number,host,chapter_hash
+
+  let id = await getMangaID(manga_title); // manga_id
+  //console.log("Manga id:",id);
+  let chapterDic = await getMangaChapters(id); // manga_id
+  //console.log("Dic:",chapterDic);
+
+  for (const [id,number] of Object.entries(chapterDic)) {
+    let [host,pages,chapter_hash] = await getServerData(id);
+
+
+    await DownloadChapters(pages,number,manga_title,host,chapter_hash,folder_path);
+
+
+  }
+
+
+
+
+}
+
+async function DownloadMangaQuery(manga_title) {
+  const answer = await confirm({message:  `Are you sure you want to download ${manga_title}? `})
+
+  if (!answer) {
+    await SearchManga();
+  }else{
+
+    const root_path = path.join(os.homedir(), "Mangas");
+    const fullPath = path.join(root_path,manga_title);
+
+    if (!fs.existsSync(fullPath)) {
+      fs.mkdirSync(path.join(root_path,manga_title), {recursive: true});
+      await DownloadManga(fullPath,manga_title);
+    }else {
+      console.log("[ERROR]: Folder exists")
+    }
+
+
+
+
+
+  }
+
+
+}
