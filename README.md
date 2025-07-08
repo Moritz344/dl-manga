@@ -1,6 +1,11 @@
-# dl-manga
-yet another manga cli downloader
+<h1 align="center">dl manga</h1>
 
-> **Disclaimer:**
-> 
-> **Users are solely responsible** for how they use this tool.  
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+
+Download mangas from the comfort of your terminal.
+
+## Credits
+This cli tool uses the mangadex api.
+
+## Author
+- Moritz344
