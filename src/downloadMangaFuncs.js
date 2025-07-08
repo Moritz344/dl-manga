@@ -5,6 +5,7 @@ import path from 'node:path';
 // TODO: use ora for text color
 // TODO: change popular field -> Select
 // TODO: prompt theme
+// TODO: base url nicht hardcoden
 
 export async function getMangaID(manga_title) {
 
