@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { baseUrl } from './config.js';
 
 // TODO: use ora for text color
 // TODO: change popular field -> Select
@@ -9,7 +10,9 @@ import path from 'node:path';
 
 export async function getMangaID(manga_title) {
 
-  const url = `https://api.mangadex.org/manga?title=${manga_title}`;
+  // display available languages
+
+  const url = `${baseUrl}/manga?title=${manga_title}`;
 
   var id = "";
 
@@ -17,7 +20,7 @@ export async function getMangaID(manga_title) {
     const response = await fetch(url, {
       method: 'GET',
       header:{
-        'Content-Type': "applications/json",
+        'Content-Type': "application/json",
 
       },
     });
@@ -27,9 +30,12 @@ export async function getMangaID(manga_title) {
     }else {
       const data = await response.json();
 
+
       for (let i=0;i<data.data.length;i++) {
         let titles = data.data[i]["attributes"]["title"];
         let names = titles["en"] || Object.values(titles)[0];
+        console.log(data.data[i]["attributes"]["availableTranslatedLanguages"]);
+        console.log(titles);
 
         if (names.match(manga_title)) {
           id = data.data[i]["id"]
@@ -44,13 +50,21 @@ export async function getMangaID(manga_title) {
     console.log(err);
   }
 
+  console.log(id);
+
   return id;
 
 }
 
+//await getMangaID("Berserk");
+
+
 export async function getMangaChapters(manga_id) {
 
-  const url = `https://api.mangadex.org/manga/${manga_id}/feed?`
+  // NOTE: mangas die nur eine englische übersetzung haben
+  // werden jz installiert anderer werden ignoriert!
+
+  const url = `${baseUrl}/manga/${manga_id}/feed?translatedLanguage[]=en`
 
   var chapterList = {};
 
@@ -58,7 +72,7 @@ export async function getMangaChapters(manga_id) {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Content-Type': 'applications/json',
+        'Content-Type': 'application/json',
       }
     })
 
@@ -70,7 +84,10 @@ export async function getMangaChapters(manga_id) {
       for (let i=0;i<data.data.length;i++) {
         let id = data.data[i]["id"];
         let number = data.data[i]["attributes"]["chapter"];
-        chapterList[id] = number;
+        if ( number  ) {
+          chapterList[id] = number;
+        }
+
 
       }
 
@@ -80,16 +97,16 @@ export async function getMangaChapters(manga_id) {
     console.log(error);
   }
 
-  return chapterList;
+      return chapterList;
 }
 
-//let c = await getMangaChapters("30196491-8fc2-4961-8886-a58f898b1b3e");
-//console.log(c);
+let c = await getMangaChapters("aa6c76f7-5f5f-46b6-a800-911145f81b9b");
+console.log(c);
 
 export async function getServerData(chapter_id) {
 
   //console.log(chapter_id);
-  const url = `https://api.mangadex.org/at-home/server/${chapter_id}`;
+  const url = `${baseUrl}/at-home/server/${chapter_id}`;
   var host = "";
   var pages = "";
   var chapter_hash = "";
@@ -98,7 +115,7 @@ export async function getServerData(chapter_id) {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Content-Type': 'applications/json',
+        'Content-Type': 'application/json',
       }
     })
 
