@@ -6,11 +6,11 @@ import { getMangaID,getMangaChapters,getServerData, DownloadChapters } from './d
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { baseUrl } from './config.js';
 
-// NOTE: source funktion erwartet: { poop: "pooping", value: 'Wert' },
-// TODO: base url nicht hardcoden
 // TODO: Choose Chapters to download
-// TODO: test file
+// TODO: test files
+// FIX: tool is downloading mangas that are not in englich  NOTE: Temp Fix (nur englische kapitel verfügbar)
 
 async function HomeScreen() {
 
@@ -43,16 +43,7 @@ async function HomeScreen() {
 HomeScreen();
 
 async function SearchMangaPopular() {
-  const answer = await search({
-    pageSize: 7,
-    message: 'Select an Manga',
-    source: async (input, { signal }) => {
-      if (!input) {
-        return [];
-      }
-
-
-      const url = "https://api.mangadex.org/manga?limit=10&order[followedCount]=desc";
+      const url = `${baseUrl}/manga?limit=10&order[followedCount]=desc `;
       const manga_list = [];
 
       try {
@@ -69,9 +60,10 @@ async function SearchMangaPopular() {
           let titles = data.data[i]["attributes"]["title"]
           let names = titles.en || Object.values(titles)[0]; // <- titles ist ein objekt
 
+
           manga_list.push({
             name: names,
-            value: names
+            value: names,
           });
         }
 
@@ -81,32 +73,28 @@ async function SearchMangaPopular() {
         console.log(error);
       }
 
+  const answer = await select({
+    pageSize: 7,
+    loop: false,
+    message: 'Select a Manga',
+    choices: manga_list
 
-      return manga_list;
-
-
-    },
-
-  });
-    if (answer === "Back") {
-      await HomeScreen();
-    }
+  })
 
 }
-
 
 //SearchMangaPopular();
 
 async function SearchManga() {
   const answer = await search({
-    message: 'Select a Manga',
+    message: 'Search a Manga',
     source: async (input, { signal }) => {
       if (!input) {
         return [];
       }
 
 
-      const url = `https://api.mangadex.org/manga?title=${encodeURIComponent(input)}`;
+      const url = `${baseUrl}/manga?title=${encodeURIComponent(input)}`;
 
 
       try {
@@ -120,10 +108,19 @@ async function SearchManga() {
         const data = await response.json();
 
 
+        //for (let i=0;i<data.data.length;i++) {
+        //  let titles = data.data[i]["attributes"]["title"]
+        //  let names = titles.en || Object.values(titles)[0]; // <- titles ist ein objekt
+
+        //  console.log(Object.values(titles)[0]);
+        //}
+
+
         return data.data.map((mg) => ({
           name: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
           value: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
         }));
+
 
 
       }catch(error) {
@@ -144,13 +141,14 @@ async function DownloadManga(folder_path,manga_title) {
   console.log("");
   console.log("Downloading",manga_title,"in",folder_path);
 
-
-  // WHAT WE NEED: pages,chapter_number,host,chapter_hash
-
   let id = await getMangaID(manga_title); // manga_id
-  //console.log("Manga id:",id);
+  console.log("Manga id:",id);
   let chapterDic = await getMangaChapters(id); // manga_id
   //console.log("Dic:",chapterDic);
+
+  if (Object.keys(chapterDic).length === 0 ) {
+    console.log("[INFO]: No chapters found in english.")
+  }
 
   for (const [id,number] of Object.entries(chapterDic)) {
     let [host,pages,chapter_hash] = await getServerData(id);
@@ -165,6 +163,8 @@ async function DownloadManga(folder_path,manga_title) {
 
 
 }
+
+//await DownloadManga();
 
 async function DownloadMangaQuery(manga_title) {
   const answer = await confirm({message:  `Are you sure you want to download ${manga_title}? `})
