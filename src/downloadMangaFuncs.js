@@ -2,11 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { baseUrl } from './config.js';
+import chalk from 'chalk';
 
-// TODO: use ora for text color
-// TODO: change popular field -> Select
 // TODO: prompt theme
-// TODO: base url nicht hardcoden
 
 export async function getMangaID(manga_title) {
 
@@ -34,8 +32,8 @@ export async function getMangaID(manga_title) {
       for (let i=0;i<data.data.length;i++) {
         let titles = data.data[i]["attributes"]["title"];
         let names = titles["en"] || Object.values(titles)[0];
-        console.log(data.data[i]["attributes"]["availableTranslatedLanguages"]);
-        console.log(titles);
+        //console.log(data.data[i]["attributes"]["availableTranslatedLanguages"]);
+        //console.log(titles);
 
         if (names.match(manga_title)) {
           id = data.data[i]["id"]
@@ -50,7 +48,7 @@ export async function getMangaID(manga_title) {
     console.log(err);
   }
 
-  console.log(id);
+  //console.log(id);
 
   return id;
 
@@ -59,12 +57,16 @@ export async function getMangaID(manga_title) {
 //await getMangaID("Berserk");
 
 
-export async function getMangaChapters(manga_id) {
+export async function getMangaChapters(manga_id,amountOfChapters) {
 
   // NOTE: mangas die nur eine englische übersetzung haben
   // werden jz installiert anderer werden ignoriert!
+  // get chapters that are in amountOfChapters
 
-  const url = `${baseUrl}/manga/${manga_id}/feed?translatedLanguage[]=en`
+
+
+
+  const url = `${baseUrl}/manga/${manga_id}/feed?translatedLanguage[]=en&order[chapter]=asc`
 
   var chapterList = {};
 
@@ -76,20 +78,37 @@ export async function getMangaChapters(manga_id) {
       }
     })
 
+
     if (!response.ok) {
       throw new Error(response.status);
     }else {
       const data = await response.json();
 
-      for (let i=0;i<data.data.length;i++) {
-        let id = data.data[i]["id"];
-        let number = data.data[i]["attributes"]["chapter"];
-        if ( number  ) {
-          chapterList[id] = number;
+      if (amountOfChapters === "all") {
+        for (let i=0;i<data.data.length;i++) {
+          let id = data.data[i]["id"];
+          let number = data.data[i]["attributes"]["chapter"];
+          if ( number  ) {
+            chapterList[id] = number;
+          }
+        }
+      }else{
+        //console.log("Chapters I want to download:",amountOfChapters);
+        for (let i=0;i<data.data.length;i++) {
+
+          const chapterData = data.data[i];
+          const chapterNumber = chapterData.attributes.chapter;
+          const chapterId = chapterData.id;
+
+          if ( chapterNumber && amountOfChapters.includes(chapterNumber) ) {
+            chapterList[chapterNumber] = chapterId;
+          }
+
+
         }
 
 
-      }
+     }
 
 
     }
@@ -100,12 +119,12 @@ export async function getMangaChapters(manga_id) {
       return chapterList;
 }
 
-let c = await getMangaChapters("aa6c76f7-5f5f-46b6-a800-911145f81b9b");
-console.log(c);
+//let c = await getMangaChapters("aa6c76f7-5f5f-46b6-a800-911145f81b9b");
+//console.log(c);
 
 export async function getServerData(chapter_id) {
 
-  //console.log(chapter_id);
+  console.log(chapter_id);
   const url = `${baseUrl}/at-home/server/${chapter_id}`;
   var host = "";
   var pages = "";
@@ -142,10 +161,9 @@ export async function getServerData(chapter_id) {
 
 export async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath) {
 
+  console.log(chapterNumber);
 
-
-  for (let i=0;i<chapterNumber;i++) {
-    let chapterTitle = `Chapter_${i}`
+    let chapterTitle = `Chapter_${chapterNumber}`
     let folderPath = path.join(rootPath,chapterTitle);
 
 
@@ -174,18 +192,17 @@ export async function DownloadChapters(pages,chapterNumber,manga_title,host,chap
         let pageTitle = `Page_${i}.jpg`
         fs.writeFileSync(path.join(folderPath,pageTitle),buffer,err => {
           if (err) {
-            console.log(err)
+            console.log(chalk.red.bold(err));
           }
 
 
         });
 
-        console.log(path.join(folderPath,pageTitle));
+        console.log("[INFO]",path.join(folderPath,pageTitle));
 
     }
       }
 
-    }
 
   }
 
