@@ -9,15 +9,19 @@ import os from 'node:os';
 import path from 'node:path';
 import { baseUrl } from './config.js';
 import chalk from 'chalk';
+import { PromptTheme, WarningPrompt,ErrorPrompt, asciiArt} from './config.js';
 
 // TODO: test files
 // TODO: View Downloaded Mangas / or history
+
+console.log(asciiArt);
 
 
 async function HomeScreen() {
 
   const answer = await select({
   message: "Select Categorie",
+  theme:PromptTheme,
   choices: [
     {
       name: "Search Mangas",
@@ -78,6 +82,7 @@ async function SearchMangaPopular() {
   const answer = await select({
     pageSize: 7,
     loop: false,
+    theme:PromptTheme,
     message: 'Select a Manga',
     choices: manga_list
 
@@ -95,7 +100,9 @@ async function SearchMangaPopular() {
 
 async function SearchManga() {
   const answer = await search({
-    message: 'Search a Manga',
+    message: 'Search a Manga ',
+    theme: PromptTheme,
+
     source: async (input, { signal }) => {
       if (!input) {
         return [];
@@ -115,13 +122,6 @@ async function SearchManga() {
 
         const data = await response.json();
 
-
-        //for (let i=0;i<data.data.length;i++) {
-        //  let titles = data.data[i]["attributes"]["title"]
-        //  let names = titles.en || Object.values(titles)[0]; // <- titles ist ein objekt
-
-        //  console.log(Object.values(titles)[0]);
-        //}
 
 
         return data.data.map((mg) => ({
@@ -201,6 +201,7 @@ async function ViewChapters(manga_title) {
     const answer = await checkbox({
       message: 'Select a Chapter(s)',
       choices: chapterArr,
+      theme: PromptTheme,
       loop: false,
 
     });
@@ -222,7 +223,10 @@ async function DownloadMangaQuery(manga_title) {
 
   console.log("DEBUG",amountOfChapters);
 
-  const answer = await confirm({message:  `Are you sure you want to download ${manga_title}? `})
+  const answer = await confirm({
+    message:  `Are you sure you want to download ${manga_title}? `,
+    theme: PromptTheme
+  });
 
   if (!answer) {
     await SearchManga();
@@ -235,7 +239,7 @@ async function DownloadMangaQuery(manga_title) {
       fs.mkdirSync(path.join(root_path,manga_title), {recursive: true});
       await DownloadManga(fullPath,manga_title,amountOfChapters);
     }else {
-      const answerDeleteDir = await confirm({message: `A folder for ${manga_title} already exists. Should I delete it? `})
+      const answerDeleteDir = await confirm({message: `A folder for ${manga_title} already exists. Should I delete it? `,theme: ErrorPrompt})
       if (!answerDeleteDir) {
         await SearchManga();
       }else{
