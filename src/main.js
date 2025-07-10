@@ -81,6 +81,10 @@ async function SearchMangaPopular() {
 
   })
 
+  if (answer === "Back") {
+    await SearchManga();
+  }
+
 }
 
 //SearchMangaPopular();
@@ -180,7 +184,14 @@ async function DownloadMangaQuery(manga_title) {
       fs.mkdirSync(path.join(root_path,manga_title), {recursive: true});
       await DownloadManga(fullPath,manga_title);
     }else {
-      console.log("[ERROR]: Folder exists")
+      const answerDeleteDir = await confirm({message: `A folder for ${manga_title} already exists. Should I delete it? `})
+      if (!answerDeleteDir) {
+        await SearchManga();
+      }else{
+        fs.rmSync(fullPath, { recursive: true, force: true });
+        fs.mkdirSync(path.join(root_path,manga_title), { recursive: true });
+        await DownloadManga(fullPath,manga_title);
+      }
     }
 
 
