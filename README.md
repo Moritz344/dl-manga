@@ -1,7 +1,6 @@
 <h1 align="center">dl manga</h1>
 
-![preview](https://github.com/user-attachments/assets/5c29a7d7-49c7-4ba6-a58b-ff098d617032)
-
+![Timeline 1](https://github.com/user-attachments/assets/65816e98-0334-4cb9-9770-67e71645cfca)
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
 
