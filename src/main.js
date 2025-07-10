@@ -2,15 +2,17 @@ import { search, Separator } from '@inquirer/prompts';
 import { select } from '@inquirer/prompts';
 import { confirm } from '@inquirer/prompts';
 import { input } from '@inquirer/prompts';
+import { checkbox } from '@inquirer/prompts';
 import { getMangaID,getMangaChapters,getServerData, DownloadChapters } from './downloadMangaFuncs.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { baseUrl } from './config.js';
+import chalk from 'chalk';
 
-// TODO: Choose Chapters to download
 // TODO: test files
-// FIX: tool is downloading mangas that are not in englich  NOTE: Temp Fix (nur englische kapitel verfügbar)
+// TODO: View Downloaded Mangas / or history
+
 
 async function HomeScreen() {
 
@@ -82,7 +84,9 @@ async function SearchMangaPopular() {
   })
 
   if (answer === "Back") {
-    await SearchManga();
+    await HomeScreen();
+  }else {
+    await DownloadMangaQuery(answer);
   }
 
 }
@@ -141,20 +145,24 @@ async function SearchManga() {
 
 //SearchManga();
 
-async function DownloadManga(folder_path,manga_title) {
+async function DownloadManga(folder_path,manga_title,amountOfChapters) {
   console.log("");
-  console.log("Downloading",manga_title,"in",folder_path);
+  console.log("[INFO]:",chalk.blue("Downloading",manga_title,"in",folder_path));
+  console.log("");
+
+  console.log(amountOfChapters);
 
   let id = await getMangaID(manga_title); // manga_id
   console.log("Manga id:",id);
-  let chapterDic = await getMangaChapters(id); // manga_id
-  //console.log("Dic:",chapterDic);
+  let chapterDic = await getMangaChapters(id,amountOfChapters); // manga_id
+  console.log("Dic:",chapterDic);
 
-  if (Object.keys(chapterDic).length === 0 ) {
-    console.log("[INFO]: No chapters found in english.")
-  }
+  //if (Object.keys(chapterDic).length === 0 ) {
+  //  console.log("[INFO] No chapters found in english.")
+  //}
 
-  for (const [id,number] of Object.entries(chapterDic)) {
+  for (const [number,id] of Object.entries(chapterDic)) {
+    //console.log("id",id,"number",number);
     let [host,pages,chapter_hash] = await getServerData(id);
 
 
@@ -170,7 +178,50 @@ async function DownloadManga(folder_path,manga_title) {
 
 //await DownloadManga();
 
+async function ViewChapters(manga_title) {
+
+  let id = await getMangaID(manga_title); // manga_id
+  let chapterDic = await getMangaChapters(id,"all"); // manga_id
+
+
+
+
+  var chapterArr = [];
+
+  for (const [id,number] of Object.entries(chapterDic)) {
+
+    chapterArr.push({
+      name: `Chapter_${number}`,
+      value: number,
+      description: `Chapter number ${number}`,
+    });
+  }
+
+  try {
+    const answer = await checkbox({
+      message: 'Select a Chapter(s)',
+      choices: chapterArr,
+      loop: false,
+
+    });
+    return answer;
+
+  } catch(error) {
+    console.log(chalk.red("[ERROR]: No results:",error));
+    await HomeScreen();
+  }
+
+
+
+
+}
+
 async function DownloadMangaQuery(manga_title) {
+
+  var amountOfChapters = await ViewChapters(manga_title);
+
+  console.log("DEBUG",amountOfChapters);
+
   const answer = await confirm({message:  `Are you sure you want to download ${manga_title}? `})
 
   if (!answer) {
@@ -182,7 +233,7 @@ async function DownloadMangaQuery(manga_title) {
 
     if (!fs.existsSync(fullPath)) {
       fs.mkdirSync(path.join(root_path,manga_title), {recursive: true});
-      await DownloadManga(fullPath,manga_title);
+      await DownloadManga(fullPath,manga_title,amountOfChapters);
     }else {
       const answerDeleteDir = await confirm({message: `A folder for ${manga_title} already exists. Should I delete it? `})
       if (!answerDeleteDir) {
@@ -190,7 +241,7 @@ async function DownloadMangaQuery(manga_title) {
       }else{
         fs.rmSync(fullPath, { recursive: true, force: true });
         fs.mkdirSync(path.join(root_path,manga_title), { recursive: true });
-        await DownloadManga(fullPath,manga_title);
+        await DownloadManga(fullPath,manga_title,amountOfChapters);
       }
     }
 
