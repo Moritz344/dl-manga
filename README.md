@@ -32,8 +32,9 @@ node main.js
 - [x] Search Manga
 - [x] View Popular Manga  
 - [ ] Let user choose download path
-- [ ] prompt theme
-- [ ] debug infos with colors
+- [x] prompt theme
+- [x] debug infos with colors
+- [ ] Download Manga in different languages
 ## Credits
 This cli tool uses the mangadex api.
 
