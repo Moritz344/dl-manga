@@ -23,14 +23,14 @@ export const PromptTheme = {
     highlight: txt => chalk.hex('#fe8019')(txt),    // orange
     description: txt => chalk.hex('#928374')(txt),  // gray
     disabled: txt => chalk.strikethrough.hex('#665c54')(txt), // dark gray
-    searchTerm: txt => chalk.bgHex('#fabd2f').black(txt), // yellow bg
+    searchTerm: txt => chalk.white(txt), // dark gray
   },
   icon: {
-    cursor: chalk.hex('#fabd2f')('❯'), // yellow
+    cursor: chalk.hex('#fabd2f')(' ❯'), // yellow
   },
   helpMode: 'auto',
 };
-export const WarningPrompt = {
+export const CheckboxPrompt = {
   prefix: {
     idle: chalk.hex('#fe8019')('⚠'),     // orange warning icon
     done: chalk.hex('#b8bb26')('✔'),     // green
@@ -50,10 +50,10 @@ export const WarningPrompt = {
     highlight: txt => chalk.hex('#fe8019')(txt),    // orange
     description: txt => chalk.hex('#928374')(txt),  // gray
     disabled: txt => chalk.strikethrough.hex('#665c54')(txt),
-    searchTerm: txt => chalk.bgHex('#fe8019').black(txt),
+    searchTerm: txt => chalk.hex('#fe8019').black(txt),
   },
   icon: {
-    cursor: chalk.hex('#fe8019')('❯'),
+    cursor: chalk.hex('#fe8019')(' '),
   },
   helpMode: 'auto',
 };

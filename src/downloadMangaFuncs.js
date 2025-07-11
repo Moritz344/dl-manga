@@ -56,19 +56,81 @@ export async function getMangaID(manga_title) {
 
 //await getMangaID("Berserk");
 
+export async function getMangaLanguages(manga_title) {
 
-export async function getMangaChapters(manga_id,amountOfChapters) {
+  let id = await getMangaID(manga_title);
+  var languages = [];
+  var seen = new Set();
+  var removeDuplicates = [];
+
+
+  const url = `${baseUrl}/chapter?manga=${id}&limit=100`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  try {
+    if (!response.ok) {
+      throw new Error(response.status);
+    }else{
+      const data = await response.json();
+      //console.log(data);
+
+      for (let i=0;i<data.data.length;i++) {
+        let l = data.data[i]["attributes"]["translatedLanguage"];
+        languages.push({
+          name: l,
+          value:l
+        });
+      }
+
+    }
+  }catch(error) {
+    console.log(error);
+    languages.push({
+      name: "No results",
+      value: "No results",
+    })
+  }
+
+  for (let i=0;i<languages.length;i++) {
+    const lang = languages[i];
+    if (!seen.has(lang.name)) {
+      seen.add(lang.name);
+      removeDuplicates.push(lang);
+    }
+  }
+
+  //console.log(removeDuplicates);
+
+
+  return removeDuplicates;
+
+
+}
+
+//await getMangaLanguages("Berserk")
+
+export async function getMangaChapters(manga_id,amountOfChapters,mangaLang) {
 
   // NOTE: mangas die nur eine englische übersetzung haben
   // werden jz installiert anderer werden ignoriert!
   // get chapters that are in amountOfChapters
 
 
+  //console.log(mangaLang);
 
 
-  const url = `${baseUrl}/manga/${manga_id}/feed?translatedLanguage[]=en&order[chapter]=asc`
+  const url = `${baseUrl}/manga/${manga_id}/feed?translatedLanguage[]=${mangaLang}&order[chapter]=asc`
 
   var chapterList = {};
+
+  var removeDuplicates = {};
+  var seen = new Set();
 
   try {
     const response = await fetch(url, {
@@ -83,6 +145,7 @@ export async function getMangaChapters(manga_id,amountOfChapters) {
       throw new Error(response.status);
     }else {
       const data = await response.json();
+
 
       if (amountOfChapters === "all") {
         for (let i=0;i<data.data.length;i++) {
@@ -116,15 +179,23 @@ export async function getMangaChapters(manga_id,amountOfChapters) {
     console.log(error);
   }
 
-      return chapterList;
+  for (let [id,number] of Object.entries(chapterList)) {
+    if (!seen.has(number) ) {
+      seen.add(number);
+      removeDuplicates[id] = number;
+    }
+  }
+
+      //console.log("remove",removeDuplicates);
+      return removeDuplicates;
 }
 
-//let c = await getMangaChapters("aa6c76f7-5f5f-46b6-a800-911145f81b9b");
+//let c = await getMangaChapters("32d76d19-8a05-4db0-9fc2-e0b0648fe9d0","all","en");
 //console.log(c);
 
 export async function getServerData(chapter_id) {
 
-  console.log(chapter_id);
+  //console.log(chapter_id);
   const url = `${baseUrl}/at-home/server/${chapter_id}`;
   var host = "";
   var pages = "";
@@ -161,7 +232,7 @@ export async function getServerData(chapter_id) {
 
 export async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath) {
 
-  console.log(chapterNumber);
+  console.log(chapterNumber,);
 
     let chapterTitle = `Chapter_${chapterNumber}`
     let folderPath = path.join(rootPath,chapterTitle);
