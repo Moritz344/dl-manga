@@ -16,8 +16,10 @@ import { PromptTheme, CheckboxPrompt,ErrorPrompt, asciiArt} from './config.js';
 // BUG:  view chapter screen shows duplicate chapter names sometimes ? NOTE: fixed
 
 
-console.log(asciiArt);
 
+console.log(asciiArt);
+console.log(chalk.red.bold("[NEW]: READ MANGAS IN DIFFERENT LANGUAGES!"));
+console.log("");
 
 async function HomeScreen() {
 

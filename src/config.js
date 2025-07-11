@@ -32,7 +32,7 @@ export const PromptTheme = {
 };
 export const CheckboxPrompt = {
   prefix: {
-    idle: chalk.hex('#fe8019')('⚠'),     // orange warning icon
+    idle: chalk.hex('#fabd2f')('❯'),      // yellow
     done: chalk.hex('#b8bb26')('✔'),     // green
   },
   spinner: {
