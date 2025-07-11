@@ -3,16 +3,18 @@ import { select } from '@inquirer/prompts';
 import { confirm } from '@inquirer/prompts';
 import { input } from '@inquirer/prompts';
 import { checkbox } from '@inquirer/prompts';
-import { getMangaID,getMangaChapters,getServerData, DownloadChapters } from './downloadMangaFuncs.js';
+import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages } from './downloadMangaFuncs.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { baseUrl } from './config.js';
 import chalk from 'chalk';
-import { PromptTheme, WarningPrompt,ErrorPrompt, asciiArt} from './config.js';
+import { PromptTheme, CheckboxPrompt,ErrorPrompt, asciiArt} from './config.js';
 
 // TODO: test files
 // TODO: View Downloaded Mangas / or history
+// BUG:  view chapter screen shows duplicate chapter names sometimes ? NOTE: fixed
+
 
 console.log(asciiArt);
 
@@ -20,7 +22,7 @@ console.log(asciiArt);
 async function HomeScreen() {
 
   const answer = await select({
-  message: "Select Categorie",
+  message: "Select Option",
   theme:PromptTheme,
   choices: [
     {
@@ -145,17 +147,17 @@ async function SearchManga() {
 
 //SearchManga();
 
-async function DownloadManga(folder_path,manga_title,amountOfChapters) {
+async function DownloadManga(folder_path,manga_title,amountOfChapters,language) {
   console.log("");
   console.log("[INFO]:",chalk.blue("Downloading",manga_title,"in",folder_path));
   console.log("");
 
-  console.log(amountOfChapters);
+  //console.log(amountOfChapters);
 
   let id = await getMangaID(manga_title); // manga_id
-  console.log("Manga id:",id);
-  let chapterDic = await getMangaChapters(id,amountOfChapters); // manga_id
-  console.log("Dic:",chapterDic);
+  //console.log("Manga id:",id);
+  let chapterDic = await getMangaChapters(id,amountOfChapters,language); // manga_id
+  //console.log("Dic:",chapterDic);
 
   //if (Object.keys(chapterDic).length === 0 ) {
   //  console.log("[INFO] No chapters found in english.")
@@ -178,10 +180,25 @@ async function DownloadManga(folder_path,manga_title,amountOfChapters) {
 
 //await DownloadManga();
 
-async function ViewChapters(manga_title) {
+async function ViewLanguages(manga_title) {
+
+
+  let languageArr = await getMangaLanguages(manga_title);
+
+
+  const answer = await select({
+    message: "I found these languages: ",
+    choices: languageArr,
+
+  })
+
+  return answer;
+}
+
+async function ViewChapters(manga_title,language) {
 
   let id = await getMangaID(manga_title); // manga_id
-  let chapterDic = await getMangaChapters(id,"all"); // manga_id
+  let chapterDic = await getMangaChapters(id,"all",language); // manga_id
 
 
 
@@ -191,7 +208,7 @@ async function ViewChapters(manga_title) {
   for (const [id,number] of Object.entries(chapterDic)) {
 
     chapterArr.push({
-      name: `Chapter_${number}`,
+      name: `Chapter ${number}`,
       value: number,
       description: `Chapter number ${number}`,
     });
@@ -201,7 +218,7 @@ async function ViewChapters(manga_title) {
     const answer = await checkbox({
       message: 'Select a Chapter(s)',
       choices: chapterArr,
-      theme: PromptTheme,
+      theme: CheckboxPrompt,
       loop: false,
 
     });
@@ -219,9 +236,10 @@ async function ViewChapters(manga_title) {
 
 async function DownloadMangaQuery(manga_title) {
 
-  var amountOfChapters = await ViewChapters(manga_title);
+  var mangaLanguage = await ViewLanguages(manga_title);
+  var amountOfChapters = await ViewChapters(manga_title,mangaLanguage);
 
-  console.log("DEBUG",amountOfChapters);
+  //console.log("DEBUG",amountOfChapters);
 
   const answer = await confirm({
     message:  `Are you sure you want to download ${manga_title}? `,
@@ -237,7 +255,7 @@ async function DownloadMangaQuery(manga_title) {
 
     if (!fs.existsSync(fullPath)) {
       fs.mkdirSync(path.join(root_path,manga_title), {recursive: true});
-      await DownloadManga(fullPath,manga_title,amountOfChapters);
+      await DownloadManga(fullPath,manga_title,amountOfChapters,mangaLanguage);
     }else {
       const answerDeleteDir = await confirm({message: `A folder for ${manga_title} already exists. Should I delete it? `,theme: ErrorPrompt})
       if (!answerDeleteDir) {
@@ -245,7 +263,7 @@ async function DownloadMangaQuery(manga_title) {
       }else{
         fs.rmSync(fullPath, { recursive: true, force: true });
         fs.mkdirSync(path.join(root_path,manga_title), { recursive: true });
-        await DownloadManga(fullPath,manga_title,amountOfChapters);
+        await DownloadManga(fullPath,manga_title,amountOfChapters,mangaLanguage);
       }
     }
 
