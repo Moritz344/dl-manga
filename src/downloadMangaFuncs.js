@@ -4,7 +4,37 @@ import path from 'node:path';
 import { baseUrl } from './config.js';
 import chalk from 'chalk';
 
-// TODO: prompt theme
+
+export async function getRandomManga() {
+  const url = `${baseUrl}/manga/random`;
+
+ 
+  try {
+    const response = await fetch(url,{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+
+    if (!response.ok) {
+    throw new Error(response.status);
+  }else{
+    const data = await response.json();
+
+    let randomTitle = data.data["attributes"]["title"];
+    let randomMangaTitle = data.data["attributes"]["title"]["en"] || Objects.values(randomTitle)[0];
+
+    return randomMangaTitle;
+  }
+
+
+  }catch(error) {
+  console.log(error);
+  }
+
+}
+
 
 export async function getMangaID(manga_title) {
 

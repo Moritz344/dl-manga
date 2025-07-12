@@ -3,23 +3,49 @@ import { select } from '@inquirer/prompts';
 import { confirm } from '@inquirer/prompts';
 import { input } from '@inquirer/prompts';
 import { checkbox } from '@inquirer/prompts';
-import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages } from './downloadMangaFuncs.js';
+import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages, getRandomManga } from './downloadMangaFuncs.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { baseUrl } from './config.js';
 import chalk from 'chalk';
 import { PromptTheme, CheckboxPrompt,ErrorPrompt, asciiArt} from './config.js';
+import { Command } from 'commander';
+
+const program = new Command();
 
 // TODO: test files
 // TODO: View Downloaded Mangas / or history
 // BUG:  view chapter screen shows duplicate chapter names sometimes ? NOTE: fixed
+// TODO: commander
 
 
 
-console.log(asciiArt);
-console.log(chalk.red.bold("[NEW]: READ MANGAS IN DIFFERENT LANGUAGES!"));
-console.log("");
+async function HandleArgv() {
+  program
+    .name('manga-cli')
+    .description('Eine CLI-Anwendung für MangaDex')
+    .version('1.0.0');
+  
+  
+  program
+    .command('search')
+    .argument('<query>', 'Suchbegriff')
+    .action((query ) => {
+      DownloadMangaQuery(query);
+    });
+
+
+  if (process.argv.length <= 2) {
+    console.log(asciiArt);
+    console.log(chalk.red.bold("[NEW]: READ MANGAS IN DIFFERENT LANGUAGES!"));
+    console.log("");
+    await HomeScreen();
+  }
+  
+  program.parse(process.argv);
+}
+await HandleArgv();
 
 async function HomeScreen() {
 
@@ -37,6 +63,11 @@ async function HomeScreen() {
       value: "Popular Manga",
       description: "View popular Mangas"
     },
+    {
+      name: "Feeling Lucky?",
+      value: "Random Manga",
+      description: "View a Random Manga"
+    },
   ],
 
 
@@ -44,6 +75,8 @@ async function HomeScreen() {
 
   if (answer === 'Popular Manga') {
     await SearchMangaPopular();
+  }else if (answer === 'Random Manga'){
+    await SearchRandomManga();
   }else{
     await SearchManga();
   }
@@ -51,6 +84,34 @@ async function HomeScreen() {
 }
 
 HomeScreen();
+
+
+async function SearchRandomManga() {
+  let randomMangaTitle = await getRandomManga();
+
+  const answer = await select({
+    message: "Random Manga",
+    theme:PromptTheme,
+    choices: [
+    {
+      "name": randomMangaTitle,
+      "value": randomMangaTitle,
+      "description": randomMangaTitle
+    },
+    {
+      "name": "Back",
+      "value": "Back",
+      "description": "Go back to the Home screen"
+    },
+    ]
+  })
+
+  if (answer === "Back") {
+    await HomeScreen();
+  }else{
+    await DownloadMangaQuery(answer);
+  }
+}
 
 async function SearchMangaPopular() {
       const url = `${baseUrl}/manga?limit=10&order[followedCount]=desc `;
