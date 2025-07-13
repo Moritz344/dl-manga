@@ -3,13 +3,13 @@ import { select } from '@inquirer/prompts';
 import { confirm } from '@inquirer/prompts';
 import { input } from '@inquirer/prompts';
 import { checkbox } from '@inquirer/prompts';
-import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages, getRandomManga } from './downloadMangaFuncs.js';
+import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages, getRandomManga, ShowDownloadedMangas } from './downloadMangaFuncs.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { baseUrl } from './config.js';
 import chalk from 'chalk';
-import { PromptTheme, CheckboxPrompt,ErrorPrompt, asciiArt} from './config.js';
+import { PromptTheme, CheckboxPrompt,ErrorPrompt, asciiArt, } from './config.js';
 import { Command } from 'commander';
 
 const program = new Command();
@@ -18,13 +18,14 @@ const program = new Command();
 // TODO: View Downloaded Mangas / or history
 // BUG:  view chapter screen shows duplicate chapter names sometimes ? NOTE: fixed
 // TODO: commander
+// TODO: auth?
 
 
 
 async function HandleArgv() {
   program
-    .name('manga-cli')
-    .description('Eine CLI-Anwendung für MangaDex')
+    .name('dl-manga')
+    .description('Download Manga in different languages')
     .version('1.0.0');
   
   
@@ -35,10 +36,22 @@ async function HandleArgv() {
       DownloadMangaQuery(query);
     });
 
+  program
+    .command('random')
+    .argument('<query>', 'Suchbegriff')
+    .action(() => {
+      SearchRandomManga();
+    });
+  program
+    .command('popular')
+    .argument('<query>', 'Suchbegriff')
+    .action(() => {
+      SearchMangaPopular();
+    });
+
 
   if (process.argv.length <= 2) {
-    console.log(asciiArt);
-    console.log(chalk.red.bold("[NEW]: READ MANGAS IN DIFFERENT LANGUAGES!"));
+    //console.log(asciiArt);
     console.log("");
     await HomeScreen();
   }
@@ -49,41 +62,118 @@ await HandleArgv();
 
 async function HomeScreen() {
 
-  const answer = await select({
-  message: "Select Option",
-  theme:PromptTheme,
-  choices: [
-    {
-      name: "Search Mangas",
-      value: "Search Manga",
-      description: "Search for Mangas"
-    },
-    {
-      name: "Popular Mangas",
-      value: "Popular Manga",
-      description: "View popular Mangas"
-    },
-    {
-      name: "Feeling Lucky?",
-      value: "Random Manga",
-      description: "View a Random Manga"
-    },
-  ],
+  try {
+    const answer = await select({
+    message: "Select Option \n",
+    theme:PromptTheme,
+    choices: [
+      {
+        name: chalk.yellow.bold("🔍 Search Mangas"),
+        value: " Search Manga",
+        description: " \nSearch for Mangas"
+      },
+      {
+        name: chalk.red.bold("📈 Popular Mangas"),
+        value: "Popular Manga",
+        description: " \nView popular Mangas"
+      },
+      {
+        name: chalk.green.bold("🍀 Feeling Lucky?"),
+        value: "Random Manga",
+        description: " \nView a Random Manga"
+      },
+      {
+        name: chalk.blue.bold("🔍 Downloaded Mangas"),
+        value: "Downloaded Mangas",
+        description: " \nView your Downloaded Mangas"
+      }
+
+    ],
 
 
- });
+    });
 
-  if (answer === 'Popular Manga') {
-    await SearchMangaPopular();
-  }else if (answer === 'Random Manga'){
-    await SearchRandomManga();
-  }else{
-    await SearchManga();
+     if (answer === 'Popular Manga') {
+       await SearchMangaPopular();
+     }else if (answer === 'Random Manga'){
+       await SearchRandomManga();
+     }else if (answer === 'Downloaded Mangas'){
+      await SearchDownloadedMangas();
+     }else {
+
+       await SearchManga();
+    }
+
+  } catch(error) {
+    console.log(chalk.green.bold("Goodbye"));
   }
+
 
 }
 
 HomeScreen();
+
+async function ShowDownloadedChapters(answer,) {
+        let pfad = path.join(os.homedir(),`Mangas/${answer}`);
+        var chapterArr = [];
+        var listChapters = fs.readdirSync(pfad);
+
+
+
+        for (let i=0;i<listChapters.length;i++) {
+              chapterArr.push({
+                name: listChapters[i],
+                value: listChapters[i],
+                description: listChapters[i]
+            })
+        }
+
+       chapterArr.push({
+                name: "Back",
+                value: "Back",
+                description:"Go back to the Home screen" 
+            })
+
+
+        const selected = await select({
+          message: "View Downloaded Chapters:",
+          choices: chapterArr,
+          theme: PromptTheme,
+          loop: false,
+      })
+
+        if (selected === "Back") {
+          await HomeScreen();
+        }
+      
+
+}
+
+async function SearchDownloadedMangas() {
+  
+      var mangas = await ShowDownloadedMangas();
+      
+
+      const answer = await select({
+        message: "View Downloaded Mangas",
+        theme:PromptTheme,
+        choices: mangas,
+        loop:false,
+
+        
+
+      });
+
+
+      if (answer === "Back") {
+        await HomeScreen();
+      }else {
+        await ShowDownloadedChapters(answer);
+  }
+
+    
+}
+
 
 
 async function SearchRandomManga() {
@@ -164,46 +254,54 @@ async function SearchMangaPopular() {
 //SearchMangaPopular();
 
 async function SearchManga() {
-  const answer = await search({
-    message: 'Search a Manga ',
-    theme: PromptTheme,
+  try {
+    const answer = await search({
+      message: 'Search a Manga ',
+      pageSize: 10,
+      theme: PromptTheme,
 
-    source: async (input, { signal }) => {
-      if (!input) {
-        return [];
-      }
-
-
-      const url = `${baseUrl}/manga?title=${encodeURIComponent(input)}`;
-
-
-      try {
-        const response = await fetch(url,{ signal }, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const data = await response.json();
+      source: async (input, { signal }) => {
+        if (!input) {
+          return [];
+        }
 
 
+        const url = `${baseUrl}/manga?title=${encodeURIComponent(input)}`;
 
-        return data.data.map((mg) => ({
-          name: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
-          value: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
-        }));
+
+        try {
+          const response = await fetch(url,{ signal }, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+
+          const data = await response.json();
 
 
 
-      }catch(error) {
-        return [];
-      }
+          return data.data.map((mg) => ({
+            name: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
+            value: mg.attributes.title.en || Object.values(mg.attributes.title)[0],
+          }));
 
-    },
-  });
 
-  await DownloadMangaQuery(answer);
+
+        }catch(error) {
+          return [];
+        }
+
+      },
+    });
+    
+    await DownloadMangaQuery(answer);
+
+    }catch(error) {
+      console.log(chalk.green.bold("Goodbye"));
+    }
+
 
 }
 
@@ -252,6 +350,7 @@ async function ViewLanguages(manga_title) {
   const answer = await select({
     message: "I found these languages: ",
     choices: languageArr,
+    theme: PromptTheme,
 
   })
 
