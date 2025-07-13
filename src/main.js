@@ -38,13 +38,11 @@ async function HandleArgv() {
 
   program
     .command('random')
-    .argument('<query>', 'Suchbegriff')
     .action(() => {
       SearchRandomManga();
     });
   program
     .command('popular')
-    .argument('<query>', 'Suchbegriff')
     .action(() => {
       SearchMangaPopular();
     });
