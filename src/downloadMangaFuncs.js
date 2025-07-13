@@ -30,10 +30,41 @@ export async function getRandomManga() {
 
 
   }catch(error) {
-  console.log(error);
+  console.log(chalk.red.bold("[Error]: No results."));
   }
 
 }
+
+export async function ShowDownloadedMangas() {
+  let fullPath = path.join(os.homedir(),"Mangas");
+
+  var mangas = fs.readdirSync(fullPath);
+  var mangaArr = [];
+
+  for (let i=0;i<mangas.length;i++) {
+    mangaArr.push({
+      name: mangas[i],
+      value: mangas[i],
+    })
+  }
+    if (mangaArr.length === 0) {
+        mangaArr.push({
+        name: "Nothing here yet",
+        value: "Nothing here yet"
+      })
+  }
+
+    mangaArr.push({
+      name: "Back",
+      value: "Back",
+      description: "Go back to the Home screen"
+    })
+
+
+  return mangaArr;
+}
+
+ShowDownloadedMangas();
 
 
 export async function getMangaID(manga_title) {
