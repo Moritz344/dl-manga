@@ -19,6 +19,14 @@ Locally
 node main.js
 ```
 
+```bash
+node main.js -V -> version
+node main.js -h -> help
+node main.js search mangaName
+node main.js random
+node main.js popular
+```
+
 # Features
 - [x] Download Mangas
 - [x] Search Manga
