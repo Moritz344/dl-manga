@@ -19,16 +19,16 @@ export const PromptTheme = {
       return chalk.hex('#ebdbb2')(txt); // light foreground
     },
     error: txt => chalk.hex('#fb4934')(`✖ ${txt}`), // red
-    help: txt => chalk.hex('#83a598')(txt),         // blue
-    highlight: txt => chalk.hex('#fe8019')(txt),    // orange
+    help: txt => chalk.hex('#83a598')(txt),
+    highlight: txt => chalk.hex('#fe8019')(txt),// blue
     description: txt => chalk.hex('#928374')(txt),  // gray
     disabled: txt => chalk.strikethrough.hex('#665c54')(txt), // dark gray
     searchTerm: txt => chalk.white(txt), // dark gray
   },
   icon: {
-    cursor: chalk.hex('#fabd2f')(' ❯'), // yellow
+    cursor: chalk.hex('#fabd2f')('❯'), // yellow
   },
-  helpMode: 'auto',
+  helpMode: 'never',
 };
 export const CheckboxPrompt = {
   prefix: {
