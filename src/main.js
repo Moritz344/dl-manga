@@ -2,6 +2,7 @@ import { search, Separator } from '@inquirer/prompts';
 import { select } from '@inquirer/prompts';
 import { confirm } from '@inquirer/prompts';
 import { input } from '@inquirer/prompts';
+import { password } from '@inquirer/prompts';
 import { checkbox } from '@inquirer/prompts';
 import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages, getRandomManga, ShowDownloadedMangas } from './downloadMangaFuncs.js';
 import fs from 'node:fs';
@@ -14,13 +15,9 @@ import { Command } from 'commander';
 
 const program = new Command();
 
-// TODO: test files
-// TODO: View Downloaded Mangas / or history
-// BUG:  view chapter screen shows duplicate chapter names sometimes ? NOTE: fixed
-// TODO: commander
-// TODO: auth?
-
-
+// TODO: Trending Manga option
+// TODO: let user make their own prompt theme 
+// TODO: config file
 
 async function HandleArgv() {
   program
@@ -30,9 +27,9 @@ async function HandleArgv() {
   
   
   program
-    .command('search')
-    .argument('<query>', 'Suchbegriff')
-    .action((query ) => {
+    .command('download')
+    .argument('<manga_title>',"manga title")
+    .action((query) => {
       DownloadMangaQuery(query);
     });
 
@@ -60,30 +57,36 @@ await HandleArgv();
 
 async function HomeScreen() {
 
+  console.clear();
   try {
     const answer = await select({
     message: "Select Option \n",
     theme:PromptTheme,
     choices: [
       {
-        name: chalk.yellow.bold("🔍 Search Mangas"),
-        value: " Search Manga",
+        name: "Search Mangas",
+        value: "Search Manga",
         description: " \nSearch for Mangas"
       },
       {
-        name: chalk.red.bold("📈 Popular Mangas"),
+        name: "Popular Mangas",
         value: "Popular Manga",
         description: " \nView popular Mangas"
       },
       {
-        name: chalk.green.bold("🍀 Feeling Lucky?"),
+        name: "Feeling Lucky?",
         value: "Random Manga",
         description: " \nView a Random Manga"
       },
       {
-        name: chalk.blue.bold("🔍 Downloaded Mangas"),
+        name: "Downloaded Mangas",
         value: "Downloaded Mangas",
         description: " \nView your Downloaded Mangas"
+      },
+      {
+        name: "Exit",
+        value: "Exit",
+        description: " \nExit program"
       }
 
     ],
@@ -97,13 +100,16 @@ async function HomeScreen() {
        await SearchRandomManga();
      }else if (answer === 'Downloaded Mangas'){
       await SearchDownloadedMangas();
-     }else {
-
+    }else if (answer === 'Search Manga'){
        await SearchManga();
+    }else {
+      process.exit();
     }
+    
 
   } catch(error) {
-    console.log(chalk.green.bold("Goodbye"));
+    console.log(error);
+    console.log(chalk.green.bold("Abort"));
   }
 
 
@@ -111,7 +117,35 @@ async function HomeScreen() {
 
 HomeScreen();
 
+async function ShowOptionDownloadedMangas(manga_title) {
+  const answer = await select({
+    message: "Select Option",
+    loop: false,
+    theme: PromptTheme,
+    choices: [
+      {
+        name: "View Downloaded Chapters",
+        value: "View Downloaded",
+      },
+      {
+        name: "View Info",
+        value: "Info",
+      },
+      {
+        name: "Back",
+        value: "Back"
+      }
+    ]
+  })
+  if (answer === "View Downloaded") {
+      await ShowDownloadedChapters(manga_title);
+  }else if (answer === "Back") {
+    await SearchDownloadedMangas();
+  }
+}
+
 async function ShowDownloadedChapters(answer,) {
+        console.clear();
         let pfad = path.join(os.homedir(),`Mangas/${answer}`);
         var chapterArr = [];
         var listChapters = fs.readdirSync(pfad);
@@ -129,7 +163,6 @@ async function ShowDownloadedChapters(answer,) {
        chapterArr.push({
                 name: "Back",
                 value: "Back",
-                description:"Go back to the Home screen" 
             })
 
 
@@ -141,13 +174,15 @@ async function ShowDownloadedChapters(answer,) {
       })
 
         if (selected === "Back") {
-          await HomeScreen();
+          await ShowOptionDownloadedMangas(answer);
         }
       
 
 }
 
 async function SearchDownloadedMangas() {
+      
+      console.clear();
   
       var mangas = await ShowDownloadedMangas();
       
@@ -156,6 +191,7 @@ async function SearchDownloadedMangas() {
         message: "View Downloaded Mangas",
         theme:PromptTheme,
         choices: mangas,
+        pageSize: 20,
         loop:false,
 
         
@@ -166,7 +202,7 @@ async function SearchDownloadedMangas() {
       if (answer === "Back") {
         await HomeScreen();
       }else {
-        await ShowDownloadedChapters(answer);
+        await ShowOptionDownloadedMangas(answer);
   }
 
     
@@ -175,6 +211,7 @@ async function SearchDownloadedMangas() {
 
 
 async function SearchRandomManga() {
+  console.clear();
   let randomMangaTitle = await getRandomManga();
 
   const answer = await select({
@@ -197,11 +234,12 @@ async function SearchRandomManga() {
   if (answer === "Back") {
     await HomeScreen();
   }else{
-    await DownloadMangaQuery(answer);
+    await MangaOptions(answer);
   }
 }
 
 async function SearchMangaPopular() {
+      console.clear();
       const url = `${baseUrl}/manga?limit=10&order[followedCount]=desc `;
       const manga_list = [];
 
@@ -244,18 +282,59 @@ async function SearchMangaPopular() {
   if (answer === "Back") {
     await HomeScreen();
   }else {
-    await DownloadMangaQuery(answer);
+    await MangaOptions();
   }
 
 }
 
+
 //SearchMangaPopular();
 
+async function MangaOptions(manga_title) {
+  console.clear();
+  const answer = await select({
+    message: "Select Option",
+    loop: false,
+    theme:PromptTheme,
+    choices: [
+      {
+        name: "Download Manga",
+        value: "Download Manga",
+        description: " \Download a Manga"
+      },
+      {
+        name: "View Info",
+        value: "View Info",
+        description: " \nView Manga information"
+      },
+      {
+        name: "Add to List",
+        value: "Add to List",
+        description: " \nAdd Manga to your manga list"
+      },
+      {
+        name: "Back",
+        value: "Back",
+        description: " \nGo back to the Home Screen"
+      },
+
+    ],
+  })
+
+  if (answer === "Download Manga") {
+    await DownloadMangaQuery(manga_title);
+  }else if (answer === "Back") {
+    await HomeScreen();
+  }
+
+}
+
 async function SearchManga() {
+  console.clear();
   try {
     const answer = await search({
       message: 'Search a Manga ',
-      pageSize: 10,
+      pageSize: 20,
       theme: PromptTheme,
 
       source: async (input, { signal }) => {
@@ -274,6 +353,11 @@ async function SearchManga() {
               'Content-Type': 'application/json'
             }
           });
+
+          if (!response.status === '401') {
+            // refresh token
+            await refreshAccessToken();
+          }
 
 
           const data = await response.json();
@@ -294,10 +378,11 @@ async function SearchManga() {
       },
     });
     
-    await DownloadMangaQuery(answer);
+    await MangaOptions(answer);
 
     }catch(error) {
-      console.log(chalk.green.bold("Goodbye"));
+      console.log(error);
+      console.log(chalk.green.bold("Abort"));
     }
 
 
@@ -340,6 +425,7 @@ async function DownloadManga(folder_path,manga_title,amountOfChapters,language) 
 //await DownloadManga();
 
 async function ViewLanguages(manga_title) {
+  console.clear();
 
 
   let languageArr = await getMangaLanguages(manga_title);
@@ -395,6 +481,8 @@ async function ViewChapters(manga_title,language) {
 }
 
 async function DownloadMangaQuery(manga_title) {
+  
+  console.clear();
 
   var mangaLanguage = await ViewLanguages(manga_title);
   var amountOfChapters = await ViewChapters(manga_title,mangaLanguage);
