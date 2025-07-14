@@ -4,7 +4,7 @@ import { confirm } from '@inquirer/prompts';
 import { input } from '@inquirer/prompts';
 import { password } from '@inquirer/prompts';
 import { checkbox } from '@inquirer/prompts';
-import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages, getRandomManga, ShowDownloadedMangas } from './downloadMangaFuncs.js';
+import { getMangaID,getMangaChapters,getServerData, DownloadChapters, getMangaLanguages, getRandomManga, ShowDownloadedMangas, getInformation } from './downloadMangaFuncs.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -116,6 +116,26 @@ async function HomeScreen() {
 }
 
 HomeScreen();
+
+async function ShowInformation(manga_title) {
+    console.clear();
+    let { tags,description,status,year } = await getInformation(manga_title);
+
+    console.log("Year: ",year);
+    console.log("Status: ",status);
+    console.log("Tags: ",tags);
+    console.log("Description: ",description);
+
+    const answer = await confirm({ message: "Do you want to go back ",theme: PromptTheme},);
+
+    console.log(answer);
+    
+    if (answer) {
+      await MangaOptions(manga_title);
+    }else{
+      await ShowInformation(manga_title);
+    }
+}
 
 async function ShowOptionDownloadedMangas(manga_title) {
   const answer = await select({
@@ -325,6 +345,8 @@ async function MangaOptions(manga_title) {
     await DownloadMangaQuery(manga_title);
   }else if (answer === "Back") {
     await HomeScreen();
+  }else if (answer === "View Info") {
+    await ShowInformation(manga_title);
   }
 
 }

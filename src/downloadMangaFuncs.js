@@ -66,6 +66,47 @@ export async function ShowDownloadedMangas() {
 
 ShowDownloadedMangas();
 
+export async function getInformation(manga_title) {
+  const url = `${baseUrl}/manga?title=${manga_title}`;
+
+  try {
+    const response = await fetch(url,{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(response.status);
+    }else{
+      const data = await response.json();
+
+      let tags = [];
+
+      let description = data.data[0]["attributes"]["description"]["en"]
+      let status = data.data[0]["attributes"]["status"]
+      let year = data.data[0]["attributes"]["year"]
+
+
+      for (let i=0;i<data.data[0]["attributes"]["tags"].length;i++) {
+        let tag = data.data[0]["attributes"]["tags"][i];
+        let tagName = tag["attributes"]["name"];
+        let name = tagName?.["en"] || tagName?.[Object.keys(tagName)[0]];
+        tags.push(name);
+      }
+
+      return { tags,description,status,year };
+    }
+
+  } catch(error) {
+    console.log(error);
+  }
+
+
+}
+
+// let { tags,description,status,year } = await getInformation("Naruto");
 
 export async function getMangaID(manga_title) {
 
