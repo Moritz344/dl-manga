@@ -22,7 +22,7 @@ node main.js
 ```bash
 node main.js -V -> version
 node main.js -h -> help
-node main.js search mangaName
+node main.js download mangaName
 node main.js random
 node main.js popular
 ```
