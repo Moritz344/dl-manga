@@ -98,6 +98,11 @@ async function HomeScreen() {
         description: " \nView your Downloaded Mangas"
       },
       {
+        name: "View Manga List",
+        value: "List",
+        description: " \nView your Manga List"
+      },
+      {
         name: "Exit",
         value: "Exit",
         description: " \nExit program"
@@ -116,7 +121,10 @@ async function HomeScreen() {
       await SearchDownloadedMangas();
     }else if (answer === 'Search Manga'){
        await SearchManga();
+    }else if (answer === "List"){
+      await ShowMangaList();
     }else {
+
       process.exit();
     }
     
@@ -130,6 +138,27 @@ async function HomeScreen() {
 }
 
 HomeScreen();
+
+async function ShowMangaList() {
+
+
+  let manga_list = config.marked;
+
+  const answer = await select({
+    message: "Select Action",
+    theme: UserTheme,
+    loop: false,
+    choices: manga_list,
+  })
+
+  if (answer === "Back") {
+    await HomeScreen();
+  }else {
+    await MangaOptions(answer);
+  }
+
+
+}
 
 async function ShowInformation(manga_title,last_query) {
     console.clear();
@@ -367,7 +396,18 @@ async function MangaOptions(manga_title) {
     await HomeScreen();
   }else if (answer === "View Info") {
     await ShowInformation(manga_title,"Download");
+  }else if (answer === "Add to List") {
+    await AddMangaToMarked(manga_title);
   }
+
+}
+
+async function AddMangaToMarked(manga_title) {
+  
+  console.log("adding ",manga_title,"to list");
+  config.marked.push(manga_title);
+
+  fs.writeFileSync('./config.json',JSON.stringify(config,null,2),'utf-8');
 
 }
 

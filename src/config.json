@@ -1,4 +1,9 @@
 {
-  "theme": "nord",             
-  "ascii_on": false
+  "theme": "nord",
+  "ascii_on": false,
+  "marked": [
+    "Isekai NTR ~Shinyuu no Onna wo Saikyou Skill de Otosu Houhou~",
+    "Berserk",
+    "Back"
+  ]
 }
