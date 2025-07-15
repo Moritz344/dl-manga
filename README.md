@@ -37,6 +37,18 @@ node main.js popular
 - [x] config file
 - [x] User Manga list
 
+# Small Config File
+
+```bash
+{
+  "theme": "nord", // gruvbox or nord
+  "ascii_on": false, // shows ascii art
+  "marked": [ 
+    "Back"
+  ]
+```
+
+
 ## Credits
 This cli tool uses the mangadex api.
 
