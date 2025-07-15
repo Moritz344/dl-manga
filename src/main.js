@@ -142,13 +142,12 @@ HomeScreen();
 async function ShowMangaList() {
 
 
-  let manga_list = config.marked;
 
   const answer = await select({
     message: "Select Action",
     theme: UserTheme,
     loop: false,
-    choices: manga_list,
+    choices: config.marked,
   })
 
   if (answer === "Back") {
@@ -382,6 +381,11 @@ async function MangaOptions(manga_title) {
         description: " \nAdd Manga to your manga list"
       },
       {
+        name: "Remove from List",
+        value: "Remove from List",
+        description: " \nRemove a Manga from your list"
+      },
+      {
         name: "Back",
         value: "Back",
         description: " \nGo back to the Home Screen"
@@ -398,17 +402,39 @@ async function MangaOptions(manga_title) {
     await ShowInformation(manga_title,"Download");
   }else if (answer === "Add to List") {
     await AddMangaToMarked(manga_title);
+  }else if (answer === "Remove from List") {
+    await RemoveMangaFromList(manga_title);
   }
+
+}
+
+async function RemoveMangaFromList(manga_title) {
+
+  const value = config.marked.indexOf(manga_title);
+
+  if ( config.marked.includes(manga_title)) {
+    config.marked.splice(value,1);
+
+  }
+
+  fs.writeFileSync('./config.json',JSON.stringify(config,null,2),'utf-8');
+  console.log(chalk.red("Remove ",manga_title,"from list"));
+
+  await MangaOptions(manga_title);
 
 }
 
 async function AddMangaToMarked(manga_title) {
   
   console.log("adding ",manga_title,"to list");
-  config.marked.push(manga_title);
+  if (!config.marked.includes(manga_title)) {
+    config.marked.push(manga_title);
+
+  }
 
   fs.writeFileSync('./config.json',JSON.stringify(config,null,2),'utf-8');
 
+  await MangaOptions(manga_title);
 }
 
 async function SearchManga() {
