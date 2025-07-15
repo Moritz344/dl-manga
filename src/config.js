@@ -2,8 +2,35 @@ import chalk from 'chalk';
 
 export const baseUrl = "https://api.mangadex.org"
 
+export const NordTheme = {
+  prefix: {
+    idle: chalk.hex('#88C0D0')('❯'),     // nord10 - frost blue
+    done: chalk.hex('#A3BE8C')('✔'),     // nord14 - green
+  },
+  spinner: {
+    interval: 80,
+    frames: ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'],
+  },
+  style: {
+    answer: txt => chalk.hex('#A3BE8C').bold(txt),             // nord14 - green
+    message: (txt, status) => {
+      if (status === 'done') return chalk.hex('#4C566A')(txt); // nord3 - comment gray
+      return chalk.hex('#D8DEE9')(txt);                        // nord5 - light text
+    },
+    error: txt => chalk.hex('#BF616A')(`✖ ${txt}`),            // nord11 - red
+    help: txt => chalk.hex('#81A1C1')(txt),                    // nord9 - blue
+    highlight: txt => chalk.hex('#88C0D0')(txt),               // nord10 - cyan
+    description: txt => chalk.hex('#616E88')(txt),             // nord4 - grayish
+    disabled: txt => chalk.strikethrough.hex('#434C5E')(txt),  // nord2 - dark gray
+    searchTerm: txt => chalk.hex('#ECEFF4')(txt),              // nord6 - bright white
+  },
+  icon: {
+    cursor: chalk.hex('#88C0D0')('❯'), // nord10 - cyan
+  },
+  helpMode: 'never',
+};
 
-export const PromptTheme = {
+export const GruvboxTheme = {
   prefix: {
     idle: chalk.hex('#fabd2f')('❯'),      // yellow
     done: chalk.hex('#b8bb26')('✔'),      // green

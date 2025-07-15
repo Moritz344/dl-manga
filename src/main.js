@@ -10,8 +10,20 @@ import os from 'node:os';
 import path from 'node:path';
 import { baseUrl } from './config.js';
 import chalk from 'chalk';
-import { PromptTheme, CheckboxPrompt,ErrorPrompt, asciiArt, } from './config.js';
+import { GruvboxTheme, NordTheme, ErrorPrompt, asciiArt, } from './config.js';
 import { Command } from 'commander';
+
+const configData = fs.readFileSync('./config.json','utf-8');
+const config = JSON.parse(configData);
+
+const theme = config.theme;
+var UserTheme = undefined;
+
+if (theme === "gruvbox") {
+  UserTheme = GruvboxTheme;
+}else if (theme === "nord") {
+  UserTheme = NordTheme;
+}
 
 const program = new Command();
 
@@ -46,7 +58,6 @@ async function HandleArgv() {
 
 
   if (process.argv.length <= 2) {
-    //console.log(asciiArt);
     console.log("");
     await HomeScreen();
   }
@@ -58,10 +69,13 @@ await HandleArgv();
 async function HomeScreen() {
 
   console.clear();
+  if (config.ascii_on) {
+      console.log(asciiArt);
+    }
   try {
     const answer = await select({
     message: "Select Option \n",
-    theme:PromptTheme,
+    theme:UserTheme,
     choices: [
       {
         name: "Search Mangas",
@@ -117,8 +131,9 @@ async function HomeScreen() {
 
 HomeScreen();
 
-async function ShowInformation(manga_title) {
+async function ShowInformation(manga_title,last_query) {
     console.clear();
+    console.log(last_query);
     let { tags,description,status,year } = await getInformation(manga_title);
 
     console.log("Year: ",year);
@@ -126,22 +141,25 @@ async function ShowInformation(manga_title) {
     console.log("Tags: ",tags);
     console.log("Description: ",description);
 
-    const answer = await confirm({ message: "Do you want to go back ",theme: PromptTheme},);
+    const answer = await confirm({ message: "Do you want to go back ",theme: UserTheme},);
 
     console.log(answer);
     
-    if (answer) {
+    if (answer && last_query === "Download") {
       await MangaOptions(manga_title);
+    }else if (answer && last_query === "Local Download"){
+      await ShowOptionDownloadedMangas(manga_title);
     }else{
-      await ShowInformation(manga_title);
-    }
+      await ShowInformation(manga_title,last_query);
+  }
 }
 
 async function ShowOptionDownloadedMangas(manga_title) {
+  console.clear();
   const answer = await select({
     message: "Select Option",
     loop: false,
-    theme: PromptTheme,
+    theme: UserTheme,
     choices: [
       {
         name: "View Downloaded Chapters",
@@ -161,6 +179,8 @@ async function ShowOptionDownloadedMangas(manga_title) {
       await ShowDownloadedChapters(manga_title);
   }else if (answer === "Back") {
     await SearchDownloadedMangas();
+  }else if (answer === "Info") {
+    await ShowInformation(manga_title,"Local Download");
   }
 }
 
@@ -189,7 +209,7 @@ async function ShowDownloadedChapters(answer,) {
         const selected = await select({
           message: "View Downloaded Chapters:",
           choices: chapterArr,
-          theme: PromptTheme,
+          theme: UserTheme,
           loop: false,
       })
 
@@ -209,7 +229,7 @@ async function SearchDownloadedMangas() {
 
       const answer = await select({
         message: "View Downloaded Mangas",
-        theme:PromptTheme,
+        theme:UserTheme,
         choices: mangas,
         pageSize: 20,
         loop:false,
@@ -236,7 +256,7 @@ async function SearchRandomManga() {
 
   const answer = await select({
     message: "Random Manga",
-    theme:PromptTheme,
+    theme:UserTheme,
     choices: [
     {
       "name": randomMangaTitle,
@@ -293,7 +313,7 @@ async function SearchMangaPopular() {
   const answer = await select({
     pageSize: 7,
     loop: false,
-    theme:PromptTheme,
+    theme:UserTheme,
     message: 'Select a Manga',
     choices: manga_list
 
@@ -315,7 +335,7 @@ async function MangaOptions(manga_title) {
   const answer = await select({
     message: "Select Option",
     loop: false,
-    theme:PromptTheme,
+    theme:UserTheme,
     choices: [
       {
         name: "Download Manga",
@@ -346,7 +366,7 @@ async function MangaOptions(manga_title) {
   }else if (answer === "Back") {
     await HomeScreen();
   }else if (answer === "View Info") {
-    await ShowInformation(manga_title);
+    await ShowInformation(manga_title,"Download");
   }
 
 }
@@ -357,7 +377,7 @@ async function SearchManga() {
     const answer = await search({
       message: 'Search a Manga ',
       pageSize: 20,
-      theme: PromptTheme,
+      theme: UserTheme,
 
       source: async (input, { signal }) => {
         if (!input) {
@@ -456,7 +476,7 @@ async function ViewLanguages(manga_title) {
   const answer = await select({
     message: "I found these languages: ",
     choices: languageArr,
-    theme: PromptTheme,
+    theme: UserTheme,
 
   })
 
@@ -486,7 +506,7 @@ async function ViewChapters(manga_title,language) {
     const answer = await checkbox({
       message: 'Select a Chapter(s)',
       choices: chapterArr,
-      theme: CheckboxPrompt,
+      theme: UserTheme,
       loop: false,
 
     });
@@ -513,7 +533,7 @@ async function DownloadMangaQuery(manga_title) {
 
   const answer = await confirm({
     message:  `Are you sure you want to download ${manga_title}? `,
-    theme: PromptTheme
+    theme: UserTheme 
   });
 
   if (!answer) {
