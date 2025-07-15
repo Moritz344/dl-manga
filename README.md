@@ -31,10 +31,11 @@ node main.js popular
 - [x] Download Mangas
 - [x] Search Manga
 - [x] View Popular Manga  
-- [x] prompt theme
+- [x] prompt themes
 - [x] debug infos with colors
 - [x] Download Mangas in different languages
-- [ ] config file
+- [x] config file
+- [x] User Manga list
 
 ## Credits
 This cli tool uses the mangadex api.
