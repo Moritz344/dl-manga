@@ -1,8 +1,8 @@
-import chalk from 'chalk';
+const chalk = require('chalk').default;
 
-export const baseUrl = "https://api.mangadex.org"
+const baseUrl = "https://api.mangadex.org"
 
-export const NordTheme = {
+const NordTheme = {
   prefix: {
     idle: chalk.hex('#88C0D0')('❯'),     // nord10 - frost blue
     done: chalk.hex('#A3BE8C')('✔'),     // nord14 - green
@@ -30,7 +30,7 @@ export const NordTheme = {
   helpMode: 'never',
 };
 
-export const GruvboxTheme = {
+const GruvboxTheme = {
   prefix: {
     idle: chalk.hex('#fabd2f')('❯'),      // yellow
     done: chalk.hex('#b8bb26')('✔'),      // green
@@ -57,7 +57,7 @@ export const GruvboxTheme = {
   },
   helpMode: 'never',
 };
-export const CheckboxPrompt = {
+const CheckboxPrompt = {
   prefix: {
     idle: chalk.hex('#fabd2f')('❯'),      // yellow
     done: chalk.hex('#b8bb26')('✔'),     // green
@@ -84,7 +84,7 @@ export const CheckboxPrompt = {
   },
   helpMode: 'auto',
 };
-export const ErrorPrompt = {
+const ErrorPrompt = {
   prefix: {
     idle: chalk.hex('#fb4934')('✖'),     // red error icon
     done: chalk.hex('#b8bb26')('✔'),     // green for done
@@ -112,7 +112,7 @@ export const ErrorPrompt = {
   helpMode: 'auto',
 };
 
-export const asciiArt = `
+const asciiArt = `
 ▓█████▄  ██▓     ███▄ ▄███▓ ▄▄▄       ███▄    █   ▄████  ▄▄▄
 ▒██▀ ██▌▓██▒    ▓██▒▀█▀ ██▒▒████▄     ██ ▀█   █  ██▒ ▀█▒▒████▄
 ░██   █▌▒██░    ▓██    ▓██░▒██  ▀█▄  ▓██  ▀█ ██▒▒██░▄▄▄░▒██  ▀█▄
@@ -125,3 +125,13 @@ export const asciiArt = `
  ░
 
 `;
+
+
+module.exports = {
+  baseUrl,
+  NordTheme,
+  GruvboxTheme,
+  CheckboxPrompt,
+  ErrorPrompt,
+  asciiArt,
+};

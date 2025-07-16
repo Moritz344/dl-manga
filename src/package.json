@@ -1,0 +1,32 @@
+{
+  "name": "dl-manga",
+  "type": "commonjs",
+  "version": "1.0.5",
+  "description": "download manga",
+  "main": "main.js",
+  "bin": "./index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "@inquirer/prompts": "^7.6.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Moritz344/dl-manga.git"
+  },
+  "keywords": [
+    "manga"
+  ],
+  "author": "Moritz344",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Moritz344/dl-manga/issues"
+  },
+  "homepage": "https://github.com/Moritz344/dl-manga#readme"
+}

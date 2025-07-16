@@ -1,11 +1,10 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { baseUrl } from './config.js';
-import chalk from 'chalk';
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { baseUrl } = require('./config.js');
+const chalk = require('chalk');
 
-
-export async function getRandomManga() {
+async function getRandomManga() {
   const url = `${baseUrl}/manga/random`;
 
  
@@ -35,7 +34,7 @@ export async function getRandomManga() {
 
 }
 
-export async function ShowDownloadedMangas() {
+async function ShowDownloadedMangas() {
   let fullPath = path.join(os.homedir(),"Mangas");
 
   var mangas = fs.readdirSync(fullPath);
@@ -66,7 +65,7 @@ export async function ShowDownloadedMangas() {
 
 ShowDownloadedMangas();
 
-export async function getInformation(manga_title) {
+async function getInformation(manga_title) {
   const url = `${baseUrl}/manga?title=${manga_title}`;
 
   try {
@@ -108,7 +107,7 @@ export async function getInformation(manga_title) {
 
 // let { tags,description,status,year } = await getInformation("Naruto");
 
-export async function getMangaID(manga_title) {
+async function getMangaID(manga_title) {
 
   // display available languages
 
@@ -158,7 +157,7 @@ export async function getMangaID(manga_title) {
 
 //await getMangaID("Berserk");
 
-export async function getMangaLanguages(manga_title) {
+async function getMangaLanguages(manga_title) {
 
   let id = await getMangaID(manga_title);
   var languages = [];
@@ -192,7 +191,7 @@ export async function getMangaLanguages(manga_title) {
 
     }
   }catch(error) {
-    console.log(error);
+    //console.log(error);
     languages.push({
       name: "No results",
       value: "No results",
@@ -217,7 +216,7 @@ export async function getMangaLanguages(manga_title) {
 
 //await getMangaLanguages("Berserk")
 
-export async function getMangaChapters(manga_id,amountOfChapters,mangaLang) {
+async function getMangaChapters(manga_id,amountOfChapters,mangaLang) {
 
   // NOTE: mangas die nur eine englische übersetzung haben
   // werden jz installiert anderer werden ignoriert!
@@ -295,7 +294,7 @@ export async function getMangaChapters(manga_id,amountOfChapters,mangaLang) {
 //let c = await getMangaChapters("32d76d19-8a05-4db0-9fc2-e0b0648fe9d0","all","en");
 //console.log(c);
 
-export async function getServerData(chapter_id) {
+async function getServerData(chapter_id) {
 
   //console.log(chapter_id);
   const url = `${baseUrl}/at-home/server/${chapter_id}`;
@@ -325,16 +324,17 @@ export async function getServerData(chapter_id) {
 
 
   }catch(error) {
-    console.log(error);
+    console.log(chalk.red("No results"));
+    //console.log(error);
   }
 
   return [host,pages,chapter_hash];
 
 }
 
-export async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath) {
+async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath) {
 
-  console.log(chapterNumber,);
+  //console.log(chapterNumber,);
 
     let chapterTitle = `Chapter_${chapterNumber}`
     let folderPath = path.join(rootPath,chapterTitle);
@@ -356,7 +356,8 @@ export async function DownloadChapters(pages,chapterNumber,manga_title,host,chap
           }
 
         } catch(error) {
-          console.log(error);
+          console.log(chalk.red("No results"));
+          //console.log(error);
         }
 
 
@@ -378,4 +379,13 @@ export async function DownloadChapters(pages,chapterNumber,manga_title,host,chap
 
 
   }
-
+module.exports = {
+  getRandomManga,
+  ShowDownloadedMangas,
+  getInformation,
+  getMangaID,
+  getMangaLanguages,
+  getMangaChapters,
+  getServerData,
+  DownloadChapters,
+};
