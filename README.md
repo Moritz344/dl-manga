@@ -14,17 +14,16 @@ Download mangas from the comfort of your terminal.
 - [Installation](#installation)
 
 # Installation
-Locally
 ```bash
-node main.js
+npm i dl-manga
 ```
 
 ```bash
-node main.js -V -> version
-node main.js -h -> help
-node main.js download mangaName
-node main.js random
-node main.js popular
+node dl-manga -V -> version
+node dl-manga -h -> help
+node dl-manga download mangaName
+node dl-manga random
+node dl-manga popular
 ```
 
 # Features
