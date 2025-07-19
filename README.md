@@ -40,11 +40,14 @@ node dl-manga popular
 
 ```bash
 {
-  "theme": "nord", // gruvbox or nord
-  "ascii_on": false, // shows ascii art
-  "marked": [ 
-    "Back"
+  "theme": "nord",
+  "ascii_on": false,
+  "clear_history_on_start": false,
+  "marked": [
+  ],
+  "history": [
   ]
+}
 ```
 
 
