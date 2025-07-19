@@ -3,6 +3,7 @@ const os = require('os');
 const path = require('path');
 const { baseUrl } = require('./config.js');
 const chalk = require('chalk');
+const { PDFDocument } = require("pdf-lib");
 
 async function getRandomManga() {
   const url = `${baseUrl}/manga/random`;
@@ -332,9 +333,12 @@ async function getServerData(chapter_id) {
 
 }
 
-async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath) {
+async function CreatePdf(folderPath) {
+  console.log(folderPath);
+}
 
-  //console.log(chapterNumber,);
+async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath,downloadType) {
+
 
     let chapterTitle = `Chapter_${chapterNumber}`
     let folderPath = path.join(rootPath,chapterTitle);
@@ -364,10 +368,16 @@ async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash
         const buffer = Buffer.from(await imageResponse.arrayBuffer());
 
         let pageTitle = `Page_${i}.jpg`
+
+        // write jpg to folder
+
+
         fs.writeFileSync(path.join(folderPath,pageTitle),buffer,err => {
           if (err) {
             console.log(chalk.red.bold(err));
           }
+
+
 
 
         });

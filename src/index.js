@@ -24,10 +24,17 @@ const configPath = path.resolve(__dirname, 'config.json');
 
 const configData = fs.readFileSync(configPath, 'utf-8');
 const config = JSON.parse(configData);
+var history = config.history;
+var historyOption = config.clear_history_on_start;
+
+if (historyOption) {
+    history.length = 0;
+}
 
 
 const theme = config.theme;
 var UserTheme = undefined;
+
 
 if (theme === "gruvbox") {
   UserTheme = GruvboxTheme;
@@ -37,9 +44,9 @@ if (theme === "gruvbox") {
 
 const program = new Command();
 
-// TODO: Trending Manga option
-// TODO: let user make their own prompt theme 
-// TODO: config file
+// TODO: history tab
+// TODO: Lokale Datenbank SQL
+// TODO: download path option 
 
 async function HandleArgv() {
   program
@@ -64,6 +71,20 @@ async function HandleArgv() {
     .command('popular')
     .action(() => {
       SearchMangaPopular();
+    });
+  program
+    .command('clear_history')
+    .action(() => {
+      console.log("Cleared History");
+      history.length = 0;
+      fs.writeFileSync('./config.json',JSON.stringify(config,null,2),'utf-8');
+    });
+  program
+    .command('clear_marked')
+    .action(() => {
+      console.log("Cleared Marked Mangas");
+      config.marked.length = 0;
+      fs.writeFileSync('./config.json',JSON.stringify(config,null,2),'utf-8');
     });
 
 
@@ -113,6 +134,11 @@ async function HomeScreen() {
         description: " \nView your Manga List"
       },
       {
+        name: "History",
+        value: "history",
+        description: " \nView your Manga History"
+      },
+      {
         name: "Exit",
         value: "Exit",
         description: " \nExit program"
@@ -133,6 +159,8 @@ async function HomeScreen() {
        await SearchManga();
     }else if (answer === "List"){
       await ShowMangaList();
+    }else if (answer === "history") {
+      await ShowHistory();
     }else {
 
       process.exit();
@@ -150,12 +178,18 @@ async function HomeScreen() {
 async function ShowMangaList() {
 
 
+  let markedArray = config.marked;
+
+  const value = markedArray.indexOf("Back");
+  markedArray.splice(value,1);
+  markedArray.push("Back");
+
 
   const answer = await select({
     message: "Select Action",
     theme: UserTheme,
     loop: false,
-    choices: config.marked,
+    choices: markedArray,
   })
 
   if (answer === "Back") {
@@ -164,6 +198,33 @@ async function ShowMangaList() {
     await MangaOptions(answer);
   }
 
+
+}
+
+async function ShowHistory() {
+
+
+  let historyArray = history;
+
+  const value = historyArray.indexOf("Back");
+  historyArray.splice(value,1);
+  historyArray.push("Back");
+
+
+  const answer = await select({
+    message: "History",
+    theme:UserTheme,
+    loop:false,
+    choices: historyArray
+  })
+
+  console.log(answer);
+
+  if (answer === "Back") {
+    await HomeScreen();
+  }else{
+    await DownloadMangaQuery(answer);
+  }
 
 }
 
@@ -301,7 +362,6 @@ async function SearchRandomManga() {
     {
       "name": "Back",
       "value": "Back",
-      "description": "Go back to the Home screen"
     },
     ]
   })
@@ -395,11 +455,17 @@ async function MangaOptions(manga_title) {
       {
         name: "Back",
         value: "Back",
-        description: " \nGo back to the Home Screen"
       },
 
     ],
   })
+
+  if (!history.includes(manga_title)) {
+    history.push(manga_title);
+  }
+
+
+  fs.writeFileSync('./config.json',JSON.stringify(config,null,2),'utf-8');
 
   if (answer === "Download Manga") {
     await DownloadMangaQuery(manga_title);
