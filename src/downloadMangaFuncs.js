@@ -3,7 +3,6 @@ const os = require('os');
 const path = require('path');
 const { baseUrl } = require('./config.js');
 const chalk = require('chalk');
-const { PDFDocument } = require("pdf-lib");
 
 async function getRandomManga() {
   const url = `${baseUrl}/manga/random`;
@@ -333,11 +332,8 @@ async function getServerData(chapter_id) {
 
 }
 
-async function CreatePdf(folderPath) {
-  console.log(folderPath);
-}
 
-async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath,downloadType) {
+async function DownloadChapters(pages,chapterNumber,manga_title,host,chapterHash,rootPath) {
 
 
     let chapterTitle = `Chapter_${chapterNumber}`

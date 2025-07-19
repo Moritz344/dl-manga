@@ -45,8 +45,7 @@ if (theme === "gruvbox") {
 const program = new Command();
 
 // TODO: history tab
-// TODO: Lokale Datenbank SQL
-// TODO: download path option 
+// TODO: download path option
 
 async function HandleArgv() {
   program
