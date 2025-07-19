@@ -25,7 +25,6 @@ const configPath = path.resolve(__dirname, 'config.json');
 const configData = fs.readFileSync(configPath, 'utf-8');
 const config = JSON.parse(configData);
 
-// Dein weiterer Code hier...
 
 const theme = config.theme;
 var UserTheme = undefined;
