@@ -19,11 +19,21 @@ npm i dl-manga
 ```
 
 ```bash
-node dl-manga -V -> version
-node dl-manga -h -> help
-node dl-manga download mangaName
-node dl-manga random
-node dl-manga popular
+Usage: dl-manga [options] [command]
+
+Download Manga in different languages
+
+Options:
+  -V, --version           output the version number
+  -h, --help              display help for command
+
+Commands:
+  download <manga_title>
+  random
+  popular
+  clear_history
+  clear_marked
+  help [command]          display help for command
 ```
 
 # Features
