@@ -10,6 +10,7 @@ const {
   getRandomManga,
   ShowDownloadedMangas,
   getInformation,
+  getNewMangas
 } = require('./downloadMangaFuncs.js');
 
 const fs = require('fs');
@@ -19,6 +20,8 @@ const { baseUrl, GruvboxTheme, NordTheme, ErrorPrompt, asciiArt } = require('./c
 const chalk = require('chalk').default;
 const { Command } = require('commander');
 
+// TODO: improve info tab
+// TODO: more homescreen options last option -> Popular Manga this year
 
 const configPath = path.resolve(__dirname, 'config.json');
 
@@ -44,7 +47,6 @@ if (theme === "gruvbox") {
 
 const program = new Command();
 
-// TODO: history tab
 // TODO: download path option
 
 async function HandleArgv() {
@@ -106,6 +108,8 @@ async function HomeScreen() {
     const answer = await select({
     message: "Select Option \n",
     theme:UserTheme,
+    loop: false,
+    pageSize: 10,
     choices: [
       {
         name: "Search Mangas",
@@ -113,7 +117,12 @@ async function HomeScreen() {
         description: " \nSearch for Mangas"
       },
       {
-        name: "Popular Mangas",
+        name: "Alltime Popular Mangas",
+        value: "Alltime Popular Manga",
+        description: " \nView popular Mangas"
+      },
+      {
+        name: "Popular Mangas This Year",
         value: "Popular Manga",
         description: " \nView popular Mangas"
       },
@@ -148,7 +157,9 @@ async function HomeScreen() {
 
     });
 
-     if (answer === 'Popular Manga') {
+    // holy
+
+     if (answer === 'Alltime Popular Manga') {
        await SearchMangaPopular();
      }else if (answer === 'Random Manga'){
        await SearchRandomManga();
@@ -160,6 +171,8 @@ async function HomeScreen() {
       await ShowMangaList();
     }else if (answer === "history") {
       await ShowHistory();
+    }else if (answer === "Popular Manga") {
+      await ShowPopularMangaNew();
     }else {
 
       process.exit();
@@ -173,6 +186,26 @@ async function HomeScreen() {
 
 }
 
+async function ShowPopularMangaNew() {
+  let manga_list = await getNewMangas();
+  manga_list.push({
+    name: "Back",
+    value: "Back",
+  })
+  const answer = await select({
+    message: "Select Option",
+    loop: false,
+    choices:manga_list,
+    pageSize: 10,
+    theme: UserTheme,
+  })
+
+  if (answer === "Back") {
+    await HomeScreen();
+  }else{
+    await DownloadMangaQuery(answer);
+  }
+}
 
 async function ShowMangaList() {
 
@@ -534,10 +567,6 @@ async function SearchManga() {
             }
           });
 
-          if (!response.status === '401') {
-            // refresh token
-            await refreshAccessToken();
-          }
 
 
           const data = await response.json();
@@ -615,6 +644,8 @@ async function ViewLanguages(manga_title) {
     message: "I found these languages: ",
     choices: languageArr,
     theme: UserTheme,
+    pageSize: 5,
+    loop:false,
 
   })
 

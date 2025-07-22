@@ -105,6 +105,46 @@ async function getInformation(manga_title) {
 
 }
 
+async function getNewMangas() {
+  // NOTE: get popular manga this year
+
+  let date = new Date().getFullYear();
+  let year = date;
+  const url = `${baseUrl}/manga?&order[followedCount]=desc&year=${year}`;
+  var manga_list = [];
+  try{
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+
+
+
+    })
+      if (!response.ok) {
+        throw new Error(response.status);
+      }else{
+        const data = await response.json();
+        for (let i=0;i<data.data.length;i++) {
+          let titles = data.data[i]["attributes"]["title"]
+          let names = titles.en || Object.values(titles)[0]; // <- titles ist ein objekt
+
+
+          manga_list.push({
+            name: names,
+            value: names,
+          });
+      }
+        return manga_list;
+      }
+  }catch(err) {
+    console.log(err);
+  }
+
+}
+
+
 // let { tags,description,status,year } = await getInformation("Naruto");
 
 async function getMangaID(manga_title) {
@@ -394,4 +434,5 @@ module.exports = {
   getMangaChapters,
   getServerData,
   DownloadChapters,
+  getNewMangas
 };
