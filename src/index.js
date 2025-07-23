@@ -20,8 +20,10 @@ const { baseUrl, GruvboxTheme, NordTheme, ErrorPrompt, asciiArt } = require('./c
 const chalk = require('chalk').default;
 const { Command } = require('commander');
 
-// TODO: improve info tab
-// TODO: more homescreen options last option -> Popular Manga this year
+
+// TODO: more homescreen options last option
+
+// NOTE: last change -> exit prompts better/ search downloaded mangas/ Show prettier infos
 
 const configPath = path.resolve(__dirname, 'config.json');
 
@@ -37,6 +39,7 @@ if (historyOption) {
 
 const theme = config.theme;
 var UserTheme = undefined;
+const page_size = 20;
 
 
 if (theme === "gruvbox") {
@@ -47,7 +50,6 @@ if (theme === "gruvbox") {
 
 const program = new Command();
 
-// TODO: download path option
 
 async function HandleArgv() {
   program
@@ -109,7 +111,7 @@ async function HomeScreen() {
     message: "Select Option \n",
     theme:UserTheme,
     loop: false,
-    pageSize: 10,
+    pageSize: page_size,
     choices: [
       {
         name: "Search Mangas",
@@ -187,23 +189,29 @@ async function HomeScreen() {
 }
 
 async function ShowPopularMangaNew() {
-  let manga_list = await getNewMangas();
-  manga_list.push({
-    name: "Back",
-    value: "Back",
-  })
-  const answer = await select({
-    message: "Select Option",
-    loop: false,
-    choices:manga_list,
-    pageSize: 10,
-    theme: UserTheme,
-  })
+  try {
 
-  if (answer === "Back") {
+  
+    let manga_list = await getNewMangas();
+    manga_list.push({
+      name: "Back",
+      value: "Back",
+    })
+    const answer = await select({
+      message: "Select Option",
+      loop: false,
+      choices:manga_list,
+      pageSize: page_size,
+      theme: UserTheme,
+    })
+
+    if (answer === "Back") {
+      await HomeScreen();
+    }else{
+      await MangaOptions(answer);
+    }
+  }catch(err) {
     await HomeScreen();
-  }else{
-    await DownloadMangaQuery(answer);
   }
 }
 
@@ -216,19 +224,24 @@ async function ShowMangaList() {
   markedArray.splice(value,1);
   markedArray.push("Back");
 
+  try {
+    const answer = await select({
+      message: "Select Action",
+      theme: UserTheme,
+      loop: false,
+      choices: markedArray,
+    })
 
-  const answer = await select({
-    message: "Select Action",
-    theme: UserTheme,
-    loop: false,
-    choices: markedArray,
-  })
+    if (answer === "Back") {
+      await HomeScreen();
+    }else {
+      await MangaOptions(answer);
+    }
 
-  if (answer === "Back") {
+  }catch(err) {
     await HomeScreen();
-  }else {
-    await MangaOptions(answer);
   }
+
 
 
 }
@@ -243,32 +256,56 @@ async function ShowHistory() {
   historyArray.push("Back");
 
 
-  const answer = await select({
-    message: "History",
-    theme:UserTheme,
-    loop:false,
-    choices: historyArray
-  })
+  try {
+    const answer = await select({
+      message: "History",
+      theme:UserTheme,
+      loop:false,
+      pageSize:page_size,
+      choices: historyArray
+    })
 
-  console.log(answer);
+    console.log(answer);
 
-  if (answer === "Back") {
+    if (answer === "Back") {
+      await HomeScreen();
+    }else{
+      await DownloadMangaQuery(answer);
+    }
+
+  }catch(err) {
     await HomeScreen();
-  }else{
-    await DownloadMangaQuery(answer);
   }
 
 }
 
 async function ShowInformation(manga_title,last_query) {
+  try{
     console.clear();
-    console.log(last_query);
     let { tags,description,status,year } = await getInformation(manga_title);
 
-    console.log("Year: ",year);
-    console.log("Status: ",status);
-    console.log("Tags: ",tags);
-    console.log("Description: ",description);
+    var statusColored = "";
+
+    if (status === "completed") {
+      statusColored = chalk.green(status);
+    }else{
+      statusColored = chalk.red(status);
+
+    }
+
+    const infos = `
+    Title  ${chalk.green(manga_title)}
+    Year   ${chalk.blue(year)}
+    Status ${statusColored}
+    Tags   ${chalk.blue(tags)}
+
+    ${chalk.yellow("Description")}
+
+    ${description}
+   `
+
+    console.log(infos);
+
 
     const answer = await confirm({ message: "Do you want to go back ",theme: UserTheme},);
 
@@ -280,35 +317,44 @@ async function ShowInformation(manga_title,last_query) {
     }else{
       await ShowInformation(manga_title,last_query);
   }
+  }catch(err) {
+    console.log(err);
+  }
 }
 
+
 async function ShowOptionDownloadedMangas(manga_title) {
-  console.clear();
-  const answer = await select({
-    message: "Select Option",
-    loop: false,
-    theme: UserTheme,
-    choices: [
-      {
-        name: "View Downloaded Chapters",
-        value: "View Downloaded",
-      },
-      {
-        name: "View Info",
-        value: "Info",
-      },
-      {
-        name: "Back",
-        value: "Back"
-      }
-    ]
-  })
-  if (answer === "View Downloaded") {
+  try {
+
+    console.clear();
+    const answer = await select({
+      message: "Select Option",
+      loop: false,
+      theme: UserTheme,
+      choices: [
+        {
+          name: "View Downloaded Chapters",
+          value: "View Downloaded",
+        },
+        {
+          name: "View Info",
+          value: "Info",
+        },
+        {
+          name: "Back",
+          value: "Back"
+        }
+      ]
+    })
+    if (answer === "View Downloaded") {
       await ShowDownloadedChapters(manga_title);
-  }else if (answer === "Back") {
-    await SearchDownloadedMangas();
-  }else if (answer === "Info") {
-    await ShowInformation(manga_title,"Local Download");
+    }else if (answer === "Back") {
+      await HomeScreen();
+    }else if (answer === "Info") {
+      await ShowInformation(manga_title,"Local Download");
+    }
+  }catch(err) {
+    console.log(err);
   }
 }
 
@@ -349,29 +395,34 @@ async function ShowDownloadedChapters(answer,) {
 }
 
 async function SearchDownloadedMangas() {
-      
-      console.clear();
-  
-      var mangas = await ShowDownloadedMangas();
-      
 
-      const answer = await select({
-        message: "View Downloaded Mangas",
-        theme:UserTheme,
-        choices: mangas,
-        pageSize: 20,
-        loop:false,
+  var mangas = await ShowDownloadedMangas();
 
-        
+  try {
+    const answer = await search({
+      message: "Search Downloaded Mangas (space to see all)",
+      theme: UserTheme,
+      pageSize: page_size,
+      source: async (input, { signal }) => {
+        if (!input) return [];
 
-      });
-
-
-      if (answer === "Back") {
-        await HomeScreen();
-      }else {
-        await ShowOptionDownloadedMangas(answer);
+ 
+        return mangas
+          .filter((manga) =>
+            manga.name.toLowerCase().includes(input.toLowerCase())
+          )
+          .map((manga) => ({
+            name: manga.name,
+            value: manga.value
+          }));
+      },
+    });
+  await ShowOptionDownloadedMangas(answer);
+  }catch(err) {
+    console.log(err);
   }
+
+
 
     
 }
@@ -382,27 +433,32 @@ async function SearchRandomManga() {
   console.clear();
   let randomMangaTitle = await getRandomManga();
 
-  const answer = await select({
-    message: "Random Manga",
-    theme:UserTheme,
-    choices: [
-    {
-      "name": randomMangaTitle,
-      "value": randomMangaTitle,
-      "description": randomMangaTitle
-    },
-    {
-      "name": "Back",
-      "value": "Back",
-    },
-    ]
-  })
+  try {
+    const answer = await select({
+      message: "Random Manga",
+      theme:UserTheme,
+      choices: [
+      {
+        "name": randomMangaTitle,
+        "value": randomMangaTitle,
+        "description": randomMangaTitle
+      },
+      {
+        "name": "Back",
+        "value": "Back",
+      },
+      ]
+    })
+    if (answer === "Back") {
+      await HomeScreen();
+    }else{
+      await MangaOptions(answer);
+    }
 
-  if (answer === "Back") {
+  }catch(err) {
     await HomeScreen();
-  }else{
-    await MangaOptions(answer);
   }
+
 }
 
 async function SearchMangaPopular() {
@@ -437,19 +493,24 @@ async function SearchMangaPopular() {
         console.log(chalk.red("No results"));
       }
 
-  const answer = await select({
-    pageSize: 7,
-    loop: false,
-    theme:UserTheme,
-    message: 'Select a Manga',
-    choices: manga_list
+  try {
+    const answer = await select({
+      pageSize: page_size,
+      loop: false,
+      theme:UserTheme,
+      message: 'Select a Manga',
+      choices: manga_list
 
-  })
+    })
 
-  if (answer === "Back") {
+    if (answer === "Back") {
+      await HomeScreen();
+    }else {
+      await MangaOptions(answer);
+    }
+
+    }catch(err) {
     await HomeScreen();
-  }else {
-    await MangaOptions();
   }
 
 }
@@ -547,7 +608,7 @@ async function SearchManga() {
   try {
     const answer = await search({
       message: 'Search a Manga ',
-      pageSize: 20,
+      pageSize: page_size,
       theme: UserTheme,
 
       source: async (input, { signal }) => {
@@ -590,7 +651,6 @@ async function SearchManga() {
     await MangaOptions(answer);
 
     }catch(error) {
-      console.log(error);
       console.log(chalk.green.bold("Abort"));
     }
 
@@ -639,6 +699,7 @@ async function ViewLanguages(manga_title) {
 
   let languageArr = await getMangaLanguages(manga_title);
 
+  try {
 
   const answer = await select({
     message: "I found these languages: ",
@@ -650,6 +711,9 @@ async function ViewLanguages(manga_title) {
   })
 
   return answer;
+  }catch(err) {
+    await HomeScreen();
+  }
 }
 
 async function ViewChapters(manga_title,language) {

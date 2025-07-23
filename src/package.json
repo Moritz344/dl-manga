@@ -11,8 +11,7 @@
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
     "chalk": "^5.4.1",
-    "commander": "^14.0.0",
-    "dl-manga": "^1.0.7"
+    "commander": "^14.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
