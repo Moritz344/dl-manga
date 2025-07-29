@@ -34,6 +34,46 @@ async function getRandomManga() {
 
 }
 
+async function UpcomingMangas() {
+
+  let date = new Date().getFullYear();
+  const url = `${baseUrl}/manga?year=${date}&order[createdAt]=desc`;
+
+  var manga_list = [];
+
+  try {
+    const response = await fetch(url,{
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+
+    })
+
+    if (!response.ok) {
+      throw new Error(response.status);
+    }else{
+
+    const data = await response.json();
+    for (let i=0;i<data.data.length;i++) {
+      manga_list.push({
+        name: data.data[i]["attributes"]["title"]["en"],
+        value: data.data[i]["attributes"]["title"]["en"]
+      });
+    }
+
+    }
+
+
+
+    }catch(error) {
+      manga_list.length = 0;
+      console.log(error);
+    }
+  return manga_list;
+}
+
+
 async function ShowDownloadedMangas() {
   let fullPath = path.join(os.homedir(),"Mangas");
 
@@ -434,5 +474,6 @@ module.exports = {
   getMangaChapters,
   getServerData,
   DownloadChapters,
-  getNewMangas
+  getNewMangas,
+  UpcomingMangas
 };

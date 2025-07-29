@@ -10,7 +10,8 @@ const {
   getRandomManga,
   ShowDownloadedMangas,
   getInformation,
-  getNewMangas
+  getNewMangas,
+  UpcomingMangas
 } = require('./downloadMangaFuncs.js');
 
 const fs = require('fs');
@@ -22,8 +23,7 @@ const { Command } = require('commander');
 
 
 // TODO: more homescreen options last option
-
-// NOTE: last change -> exit prompts better/ search downloaded mangas/ Show prettier infos
+// NOTE: fixed hardcoded version number
 
 const configPath = path.resolve(__dirname, 'config.json');
 
@@ -50,12 +50,16 @@ if (theme === "gruvbox") {
 
 const program = new Command();
 
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(__dirname,'package.json'),'utf-8')
+);
+
 
 async function HandleArgv() {
   program
     .name('dl-manga')
-    .description('Download Manga in different languages')
-    .version('1.0.0');
+    .description('Download Mangas in different languages')
+    .version(pkg.version);
   
   
   program
@@ -67,11 +71,13 @@ async function HandleArgv() {
 
   program
     .command('random')
+    .description("Get a random manga")
     .action(() => {
       SearchRandomManga();
     });
   program
     .command('popular')
+    .description("Get Alltime popular manga")
     .action(() => {
       SearchMangaPopular();
     });
@@ -129,6 +135,11 @@ async function HomeScreen() {
         description: " \nView popular Mangas"
       },
       {
+        name: "Upcoming Manga",
+        value: "Upcoming",
+        description: " \nView upcoming Mangas"
+      },
+      {
         name: "Feeling Lucky?",
         value: "Random Manga",
         description: " \nView a Random Manga"
@@ -175,6 +186,8 @@ async function HomeScreen() {
       await ShowHistory();
     }else if (answer === "Popular Manga") {
       await ShowPopularMangaNew();
+    }else if (answer === "Upcoming"){
+      await ShowUpcomingManga();
     }else {
 
       process.exit();
@@ -182,9 +195,41 @@ async function HomeScreen() {
     
 
   } catch(error) {
+    console.log(error);
     console.log(chalk.green.bold("Abort"));
   }
 
+
+}
+
+async function ShowUpcomingManga() {
+  let manga_list = await UpcomingMangas();
+
+  if (!manga_list.includes("Back")) {
+    manga_list.push({
+      name: "Back",
+      value: "Back"
+    })
+
+  }
+
+
+  try {
+    const answer = await select({
+      message: "Select an Option",
+      theme: UserTheme,
+      loop: false,
+      choices:manga_list,
+      pageSize: page_size
+    })
+    if (answer === "Back") {
+      await HomeScreen();
+    }else{
+      await DownloadMangaQuery(answer);
+    }
+  }catch(err) {
+    console.log(err);
+  }
 
 }
 
@@ -414,12 +459,13 @@ async function SearchDownloadedMangas() {
           .map((manga) => ({
             name: manga.name,
             value: manga.value
+
           }));
       },
     });
   await ShowOptionDownloadedMangas(answer);
   }catch(err) {
-    console.log(err);
+    await HomeScreen();
   }
 
 
@@ -759,8 +805,10 @@ async function DownloadMangaQuery(manga_title) {
   
   console.clear();
 
+
   var mangaLanguage = await ViewLanguages(manga_title);
   var amountOfChapters = await ViewChapters(manga_title,mangaLanguage);
+
 
   //console.log("DEBUG",amountOfChapters);
 

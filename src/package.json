@@ -1,17 +1,22 @@
 {
   "name": "dl-manga",
   "type": "commonjs",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "download manga",
   "main": "main.js",
   "bin": "./index.js",
   "directories": {
     "test": "tests"
   },
+  "funding": {
+      "type": "individual",
+      "url": "https://ko-fi.com/moritz344"
+    },
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
     "chalk": "^5.4.1",
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "dl-manga": "^1.0.9"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
