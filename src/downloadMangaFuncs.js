@@ -75,7 +75,13 @@ async function UpcomingMangas() {
 
 
 async function ShowDownloadedMangas() {
+
   let fullPath = path.join(os.homedir(),"Mangas");
+
+  if (!fs.existsSync(fullPath)) { 
+     fs.mkdirSync(fullPath);
+
+  }
 
   var mangas = fs.readdirSync(fullPath);
   var mangaArr = [];

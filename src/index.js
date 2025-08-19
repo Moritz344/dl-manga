@@ -25,6 +25,11 @@ const { Command } = require('commander');
 // TODO: more homescreen options last option
 // NOTE: fixed hardcoded version number
 
+//let path = path.join(os.homedir,"/Mangas");
+//if (!fs.existsSync(path)) {
+//		fs.mkdirSync(path);
+//}
+
 const configPath = path.resolve(__dirname, 'config.json');
 
 const configData = fs.readFileSync(configPath, 'utf-8');
