@@ -1,6 +1,6 @@
 {
   "name": "dl-manga",
-  "type": "commonjs",
+  "type": "module",
   "version": "1.0.9",
   "description": "download manga",
   "main": "main.js",
@@ -9,9 +9,9 @@
     "test": "tests"
   },
   "funding": {
-      "type": "individual",
-      "url": "https://ko-fi.com/moritz344"
-    },
+    "type": "individual",
+    "url": "https://ko-fi.com/moritz344"
+  },
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
     "chalk": "^5.4.1",
